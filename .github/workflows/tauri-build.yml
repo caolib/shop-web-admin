@@ -42,8 +42,9 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
+
       - name: upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: my-artifact
-          path: path/to/artifact
+          path: src-tauri/target/release/bundle #
