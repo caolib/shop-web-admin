@@ -1,0 +1,6 @@
+/* 字体 */
+div,
+span,
+body {
+    font-family: "Cascadia Code", 喵字果汁体, -apple-system, 微软雅黑, system-ui, sans-serif !important;
+}
