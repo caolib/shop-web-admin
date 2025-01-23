@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  setup:
+  build_and_release:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,11 +21,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -53,16 +50,8 @@ jobs:
       - name: Install Tauri CLI
         run: cargo install tauri-cli
 
-  build:
-    needs: setup
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Build Tauri application
-        run: pnpm run tauri build
+        run: npm run tauri build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -70,12 +59,6 @@ jobs:
           name: tauri-build
           path: src-tauri/target/release/bundle/
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
