@@ -33,7 +33,8 @@ import { goPage } from './router/jump'
 
 
 const route = useRoute()
-const isActive = (path) => route.path === path;
+// 修改 isActive 定义，避免 route 未定义时报错
+const isActive = (path) => route?.path === path;
 
 onMounted(() => {
   flushUser()
@@ -58,11 +59,11 @@ onMounted(() => {
         </a-breadcrumb-item>
         <!--登录-->
         <a-breadcrumb-item>
-          <router-link style="cursor: unset;" :class="['route-link', { active: isActive('/user') }]">
+          <router-link to="/" style="cursor: unset;" :class="['route-link', { active: isActive('/login') }]">
             <user-outlined />
             <span v-if="isLogin"> 你好,{{ user.username }} </span>
             <span v-else>
-              <router-link to="/login" :class="['route-link', { active: isActive('/login') }]">&nbsp;请登录
+              <router-link to="/login" :class="['route-link']">&nbsp;请登录
               </router-link>
             </span>
           </router-link>
