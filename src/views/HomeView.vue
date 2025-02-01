@@ -1,37 +1,19 @@
 <script setup>
 import { menuItems } from '@/config/home'
-import { searchHomeService } from '@/api/search.js'
-import { onMounted, ref } from 'vue'
-import { jumpToItem, jumpWithQuery } from '@/router/jump'
-
-const commodity = ref([]) // 商品列表
-const key = ref('') // 搜索关键字
-
-// 搜索主页商品
-const search = async () => {
-  await searchHomeService().then((res) => {
-    // console.log(res)
-    commodity.value = res.list
-  })
-}
+import { onMounted } from 'vue'
+import {
+  handleClick,
+  handleSearchClick,
+  search,
+  commodity,
+  key,
+} from '@/scripts/home'
 
 // 初始化商品信息
 onMounted(() => {
   search()
 })
 
-
-// 商品分类点击事件
-const handleClick = (item) => {
-  // message.success(`商品分类: ${item}`)
-  jumpWithQuery('/search', { category: item })
-}
-
-// 搜索按钮点击事件
-const handleSearchClick = () => {
-  // message.success(`关键字: ${key.value}`)
-  jumpWithQuery('/search', { key: key.value })
-}
 </script>
 
 <template>
@@ -48,7 +30,7 @@ const handleSearchClick = () => {
       <div class="commodity-classify">
         <a-menu mode="inline" theme="light" default-selected-keys="1">
           <a-menu-item v-for="menuItem in menuItems" :key="menuItem.key">
-            <a-breadcrumb separator="|">
+            <a-breadcrumb separator=" ">
               <component :is="menuItem.icon" class="breadcrumb-icon" />
               <a-breadcrumb-item class="commodity-item" v-for="item in menuItem.items" :key="item"
                 @click="handleClick(item)">
@@ -84,60 +66,4 @@ const handleSearchClick = () => {
   </div>
 </template>
 
-<style scoped lang="less">
-@import '@/styles/var';
-
-.layout-main {
-  height: 99vh;
-  width: 99vw;
-}
-
-/* 搜索框 */
-.search-input {
-  //background: @primary-color;
-  width: 100%;
-  height: 100px;
-  display: flex;
-  justify-content: center;
-}
-
-/* 商品分类菜单 */
-.commodity-classify {
-  background: #f0f2f5;
-  height: auto;
-  width: 20vw;
-  float: left;
-}
-
-ul.ant-menu.ant-menu-root.ant-menu-inline {
-  border: 1px solid #dedede;
-  border-radius: 10px;
-}
-
-/* 商品分类悬浮高亮 */
-.ant-breadcrumb li:last-child:hover,
-.commodity-item:hover {
-  color: @primary-color;
-}
-
-.commodity-item {
-  color: #000;
-}
-
-/* 面包屑前图标间隔 */
-.breadcrumb-icon {
-  margin-right: 5px;
-}
-
-/* 商品卡片 */
-.commodity-card {
-  margin-top: 10px;
-  margin-left: 5px;
-  width: auto;
-}
-
-/* 价格文本 */
-span.price {
-  color: @red;
-}
-</style>
+<style src="@/assets/styles/home.scss" scoped lang="scss"></style>

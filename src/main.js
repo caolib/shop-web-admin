@@ -1,4 +1,4 @@
-import './assets/main.css'
+import './assets/styles/main.css'
 import 'ant-design-vue/dist/reset.css'
 
 import { createApp } from 'vue'

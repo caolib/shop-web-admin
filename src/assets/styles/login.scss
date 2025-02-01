@@ -1,0 +1,44 @@
+@use "./variables.scss" as *;
+
+/* 背景图片 */
+.login-body {
+    height: 100vh;
+    // background-image: url('$/assets/login-bg.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+}
+
+.login-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.form-header {
+    display: flex;
+    justify-content: center;
+}
+
+.form-title {
+    cursor: pointer;
+    margin: 10px 10px;
+}
+
+.form-title:hover {
+    color: $primary-color;
+}
+
+/* 登录表单 */
+.login-form {
+    background: #fff;
+    border: 1px #e8e8e8 solid;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    padding: 30px 50px;
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+}

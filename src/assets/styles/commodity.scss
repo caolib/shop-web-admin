@@ -1,0 +1,51 @@
+@use "./variables.scss" as *;
+
+.commodity-page {
+    height: auto;
+    padding: 20px;
+}
+
+.commodity-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.commodity-container {
+    height: 100vh;
+    width: 100vw;
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.commodity-image {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.field-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.field-label {
+    min-width: 100px;
+}
+
+.field-input {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.commodity-buttons {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.image-url-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}

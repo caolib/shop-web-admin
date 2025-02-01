@@ -1,0 +1,53 @@
+
+@use "./variables.scss" as *;
+
+.top-navbar {
+  display: flex;
+  justify-content: space-between;
+  height: auto;
+  position: fixed;
+  top: 0;
+  background: #f2f4f7;
+  width: 100%;
+  z-index: 1000;
+  border-bottom: $border;
+}
+
+.bread-navbar {
+  padding: 5px 15px;
+}
+
+.route-link {
+  border: 1px solid transparent;
+}
+
+.route-link:hover,
+a:hover {
+  border: 1px solid $primary-color;
+  color: $primary-color !important;
+}
+
+.logout:hover {
+  cursor: pointer;
+  color: $red;
+}
+
+.active {
+  background: $light-primary-color;
+  color: $primary-color !important;
+}
+
+.win-btn {
+  background: transparent;
+  border: 0;
+  font-size: 14px;
+}
+
+.win-btn:hover {
+  background: white;
+  color: $primary-color;
+}
+
+.win-btn.close:hover {
+  background: $red;
+}

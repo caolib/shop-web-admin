@@ -1,0 +1,85 @@
+@use "./variables.scss" as *;
+
+/* 预设条件 */
+.condition-row-item {
+    margin-left: 15px;
+    color: $blue;
+    cursor: pointer;
+}
+
+.commodity-desc {
+    color: black;
+    font-size: 12px;
+}
+
+.condition-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.layout-main {
+    height: 99vh;
+    width: 99vw;
+}
+
+/* 搜索框 */
+.search-input {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+}
+
+/* 商品分类菜单 */
+.commodity-classify {
+    background: #f0f2f5;
+    height: auto;
+    width: 20vw;
+    float: left;
+}
+
+ul.ant-menu.ant-menu-root.ant-menu-inline {
+    border: 1px solid #dedede;
+    border-radius: 10px;
+}
+
+/* 商品分类悬浮高亮 */
+.ant-breadcrumb li:last-child:hover,
+.commodity-item:hover {
+    color: $primary-color;
+}
+
+.commodity-item {
+    color: #000;
+}
+
+/* 面包屑前图标间隔 */
+.breadcrumb-icon {
+    margin-right: 5px;
+}
+
+/* 商品卡片 */
+.commodity-card {
+    margin-top: 10px;
+    margin-left: 5px;
+    width: auto;
+}
+
+/* 价格文本 */
+span.price {
+    color: $red;
+}
+
+/* 搜索条件 */
+.search-condition {
+    margin: 10px;
+    padding: 20px;
+    border: 1px solid #e6e6e6;
+}
+
+/* 商品展示 */
+.commodity-display {
+    margin: 10px;
+}
