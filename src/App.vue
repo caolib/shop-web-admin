@@ -9,6 +9,10 @@ import {
   close,
   flushPage
 } from '@/scripts/app'
+import zhCN from "ant-design-vue/es/locale/zh_CN";
+import dayjs from "dayjs";
+import "dayjs/locale/zh-cn";
+dayjs.locale("zh-cn");
 
 import {
   FileTextOutlined,
@@ -41,9 +45,11 @@ onMounted(() => {
   getServiceStatus(serviceStatus)
   const intervalId = setInterval(() => getServiceStatus(serviceStatus), 60000) // 60s执行一次
   onUnmounted(() => clearInterval(intervalId))
-})
+});
+
 
 </script>
+
 
 <template>
   <!--顶部导航栏-->
@@ -59,13 +65,13 @@ onMounted(() => {
         </a-breadcrumb-item>
         <!--登录-->
         <a-breadcrumb-item>
-          <router-link to="/" style="cursor: unset;" :class="['route-link', { active: isActive('/login') }]">
+          <router-link v-if="isLogin" to="/" style="cursor: unset;" :class="['route-link']">
             <user-outlined />
-            <span v-if="isLogin"> 你好,{{ user.username }} </span>
-            <span v-else>
-              <router-link to="/login" :class="['route-link']">&nbsp;请登录
-              </router-link>
-            </span>
+            <span> 你好,{{ user.username }} </span>
+          </router-link>
+          <router-link v-else to="/login" :class="['route-link', { active: isActive('/login') }]">
+            <user-outlined />
+            请登录
           </router-link>
         </a-breadcrumb-item>
 
@@ -76,24 +82,32 @@ onMounted(() => {
           </router-link>
         </a-breadcrumb-item>
 
-        <!--搜索商品-->
+        <!--商品-->
         <a-breadcrumb-item>
           <router-link to="/search" :class="['route-link', { active: isActive('/search') }]">
             <SearchOutlined />
-            搜索商品
+            商品管理
           </router-link>
         </a-breadcrumb-item>
 
-        <!--我的订单-->
+        <!--用户-->
+        <a-breadcrumb-item>
+          <router-link to="/user" :class="['route-link', { active: isActive('/user') }]">
+            <user-outlined />
+            用户管理
+          </router-link>
+        </a-breadcrumb-item>
+
+        <!--订单管理-->
         <a-breadcrumb-item>
           <router-link to="/order-list" :class="['route-link', { active: isActive('/order-list') }]">
             <FileTextOutlined />
-            我的订单
+            订单管理
           </router-link>
         </a-breadcrumb-item>
 
         <!--退出登录-->
-        <a-breadcrumb-item v-if="isLogin" class="logout" @click="logout('')">
+        <a-breadcrumb-item v-if="isLogin" style="color: gray;" class="logout" @click="logout('')">
           <LogoutOutlined />
           退出登录
         </a-breadcrumb-item>
@@ -134,7 +148,7 @@ onMounted(() => {
   </div>
 
   <!--路由页面-->
-  <a-config-provider :theme="{ token: { colorPrimary: '#00b96b' } }">
+  <a-config-provider :locale="zhCN" :theme="{ token: { colorPrimary: '#00b96b' } }">
     <RouterView style="margin-top: 40px" />
     <a-back-top />
   </a-config-provider>
