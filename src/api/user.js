@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-// 获取用户管理信息接口
+// 获取用户
 const getUsersService = (query) => {
     return request.get('/users/manage', { params: query })
 }

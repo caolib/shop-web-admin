@@ -1,0 +1,51 @@
+@use "./variables.scss" as *;
+
+.order-info-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.order-info-table {
+    border: $border;
+}
+
+.container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 50px !important;
+}
+
+.user-info {
+    width: 300px;
+    box-shadow: $box-shadow;
+    border-radius: 0 0 8px 8px;
+}
+
+/* 商品图片 */
+img.commodity-image {
+    width: 50px;
+}
+
+/* 表格中文本 */
+td.ant-table-cell {
+    font-size: 10px;
+}
+
+.ant-typography,
+a.item-name {
+    font-size: 12px;
+}
+
+:deep(.tb-row) td {
+    background-color: $tb-row-bg;
+}
+
+.hidden-column {
+    display: none;
+}
+
+.commodity-tb>th {
+    color: gray;
+}
