@@ -21,15 +21,18 @@
   border: 1px solid transparent;
 }
 
-.route-link:hover,
-a:hover {
+.route-link:hover {
   border: 1px solid $primary-color;
+  color: $primary-color !important;
+}
+
+a:hover{
   color: $primary-color !important;
 }
 
 .logout:hover {
   cursor: pointer;
-  color: $red;
+  color: $red !important;
 }
 
 .active {
@@ -40,7 +43,7 @@ a:hover {
 .win-btn {
   background: transparent;
   border: 0;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .win-btn:hover {
@@ -48,6 +51,8 @@ a:hover {
   color: $primary-color;
 }
 
+
 .win-btn.close:hover {
-  background: $red;
+  color: white;
+  background: #f30213ba;
 }

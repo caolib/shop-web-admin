@@ -20,7 +20,9 @@ import {
 } from '@/scripts/commodity'
 
 onMounted(() => {
+  // 禁用页面滚动
   forbiddenScroll()
+  // 根据路由中的 query 参数获取商品 ID，若存在则加载商品信息
   const id = route.query.id
   if (id) {
     console.log(`商品ID: ${id}`)
@@ -29,22 +31,29 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  // 组件卸载前恢复页面滚动
   allowScroll()
 })
-
 </script>
 
 <template>
+  <!-- 商品页面容器 -->
   <div class="commodity-page">
+    <!-- 检查是否有商品数据 -->
     <div v-if="commodity" class="commodity-container">
+      <!-- 商品信息区域 -->
       <a-row :gutter="16">
+        <!-- 商品图片区域 -->
         <a-col :span="10">
+          <!-- 图片输入与展示 -->
           <div class="image-url-group">
             <a-input v-model:value="commodity.image" class="field-input" @blur="validateImage" />
           </div>
           <img :src="commodity.image" alt="商品图片" class="commodity-image" />
         </a-col>
+        <!-- 商品详情区域 -->
         <a-col :span="14" class="commodity-details">
+          <!-- 字段信息展示区域 -->
           <div v-for="field in fields" :key="field.key" class="field-group">
             <label class="field-label">{{ field.label }}:</label>
             <template v-if="field.key === 'status'">
@@ -63,6 +72,7 @@ onBeforeUnmount(() => {
                 :disabled="field.editable === false" @blur="() => validateField(field)" />
             </template>
           </div>
+          <!-- 操作按钮区域 -->
           <div class="commodity-buttons">
             <a-button type="primary" size="large" @click="saveCommodity" :disabled="!canSave">
               保存
