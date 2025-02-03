@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, h } from 'vue'
+import { ref, onMounted, onUnmounted, h } from 'vue'
 import { useRoute } from 'vue-router' // 新增 useRoute 导入
 import {
   serviceStatus,
@@ -7,7 +7,8 @@ import {
   minimize,
   toggleMaximize,
   close,
-  flushPage
+  flushPage,
+  appWindow  // 新增导入 appWindow
 } from '@/scripts/app'
 import zhCN from "ant-design-vue/es/locale/zh_CN";
 import dayjs from "dayjs";
@@ -41,7 +42,6 @@ const route = useRoute()
 const isActive = (path) => route?.path === path;
 
 onMounted(() => {
-  flushUser()
   getServiceStatus(serviceStatus)
   const intervalId = setInterval(() => getServiceStatus(serviceStatus), 60000) // 60s执行一次
   onUnmounted(() => clearInterval(intervalId))
@@ -65,20 +65,13 @@ onMounted(() => {
         </a-breadcrumb-item>
         <!--登录-->
         <a-breadcrumb-item>
-          <router-link v-if="isLogin" to="/" style="cursor: unset;" :class="['route-link']">
+          <span v-if="isLogin" style="padding: 5px;border-radius: 5px" class="route-link">
             <user-outlined />
             <span> 你好,{{ user.username }} </span>
-          </router-link>
+          </span>
           <router-link v-else to="/login" :class="['route-link', { active: isActive('/login') }]">
             <user-outlined />
             请登录
-          </router-link>
-        </a-breadcrumb-item>
-
-        <!--注册-->
-        <a-breadcrumb-item v-if="!isLogin">
-          <router-link to="" :class="['route-link']">
-            <span>注册</span>
           </router-link>
         </a-breadcrumb-item>
 
@@ -116,7 +109,7 @@ onMounted(() => {
 
     </div>
 
-    <!-- 窗口操作 -->
+    <!-- 修改窗口操作区域，使用 v-if 渲染图标 -->
     <div class="window-controls">
       <!--服务状态-->
       <a-dropdown>
@@ -139,8 +132,10 @@ onMounted(() => {
       <a-button class="win-btn" @click="flushPage" :icon="h(ReloadOutlined)" />
       <!--最小化-->
       <a-button class="win-btn" @click="minimize" :icon="h(MinusOutlined)" />
-      <!--切换最大化-->
-      <a-button class="win-btn" @click="toggleMaximize" :icon="h(ExpandOutlined)" />
+      <!--切换最大化按钮-->
+      <a-button class="win-btn" @click="toggleMaximize">
+        <expand-outlined />
+      </a-button>
       <!--关闭-->
       <a-button class="win-btn close" @click="close" :icon="h(CloseOutlined)" />
     </div>

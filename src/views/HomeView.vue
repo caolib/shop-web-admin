@@ -8,6 +8,8 @@ import {
   commodity,
   key,
 } from '@/scripts/home'
+import { jumpToItem } from '@/router/jump';
+import { handleImageError } from '@/utils/handleImg';
 
 // 初始化商品信息
 onMounted(() => {
@@ -47,7 +49,7 @@ onMounted(() => {
           <a-col :span="6" v-for="item in commodity" :key="item.id">
             <a-card class="commodity-card" hoverable @click="jumpToItem(item.id)">
               <template #cover>
-                <img :src="item.image" alt="" />
+                <img :src="item.image" alt="" @error="handleImageError" />
               </template>
               <a-card-meta>
                 <template #title>
