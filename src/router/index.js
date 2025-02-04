@@ -5,6 +5,8 @@ import CommodityView from '@/views/CommodityView.vue'
 import SearchView from '@/views/SearchView.vue'
 import UserView from '@/views/UserView.vue'
 import OrderListView from '@/views/OrderListView.vue'
+import PayView from '@/views/PayView.vue'
+import AboutView from '@/views/AboutView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,6 +40,16 @@ const router = createRouter({
       path: '/order-list',
       name: 'order-list',
       component: OrderListView,
+    },
+    {
+      path: '/pay',
+      name: 'pay',
+      component: PayView,
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: AboutView,
     },
   ],
 })
