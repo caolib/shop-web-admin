@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, h } from 'vue'
-import { useRoute } from 'vue-router' // 新增 useRoute 导入
+import { useRoute } from 'vue-router'
 import {
   serviceStatus,
   allServicesUp,
@@ -8,28 +8,14 @@ import {
   toggleMaximize,
   close,
   flushPage,
-  appWindow  // 新增导入 appWindow
+  appWindow
 } from '@/scripts/app'
 import zhCN from "ant-design-vue/es/locale/zh_CN";
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 dayjs.locale("zh-cn");
-
 import {
-  FileTextOutlined,
-  HomeOutlined,
-  LogoutOutlined,
-  SearchOutlined,
-  ShoppingCartOutlined,
-  UserOutlined,
-  CheckCircleFilled,
-  ExclamationCircleFilled,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  ExpandOutlined,
-  CloseOutlined,
-  MinusOutlined,
-  ReloadOutlined
+  FileTextOutlined, HomeOutlined, LogoutOutlined, SearchOutlined, ShoppingCartOutlined, UserOutlined, CheckCircleFilled, ExclamationCircleFilled, ArrowLeftOutlined, ArrowRightOutlined, ExpandOutlined, CloseOutlined, MinusOutlined, ReloadOutlined, PayCircleOutlined
 } from '@ant-design/icons-vue'
 import { checkSrv, getServiceStatus } from '@/api/status.js'
 import { logout } from '@/api/login.js'
@@ -42,8 +28,9 @@ const route = useRoute()
 const isActive = (path) => route?.path === path;
 
 onMounted(() => {
+  flushUser()
   getServiceStatus(serviceStatus)
-  const intervalId = setInterval(() => getServiceStatus(serviceStatus), 60000) // 60s执行一次
+  const intervalId = setInterval(() => getServiceStatus(serviceStatus), 60000)
   onUnmounted(() => clearInterval(intervalId))
 });
 
@@ -99,6 +86,13 @@ onMounted(() => {
           </router-link>
         </a-breadcrumb-item>
 
+        <!--关于-->
+        <a-breadcrumb-item>
+          <router-link to="/about" :class="['route-link', { active: isActive('/about') }]">
+            关于
+          </router-link>
+        </a-breadcrumb-item>
+
         <!--退出登录-->
         <a-breadcrumb-item v-if="isLogin" style="color: gray;" class="logout" @click="logout('')">
           <LogoutOutlined />
@@ -114,7 +108,7 @@ onMounted(() => {
       <!--服务状态-->
       <a-dropdown>
         <a-button style="color: #00b96b" class="win-btn" v-if="allServicesUp" :icon="h(CheckCircleFilled)" />
-        <ExclamationCircleFilled style="color: #f30213" v-else />
+        <a-button style="color: #f30213" class="win-btn" v-else :icon="h(ExclamationCircleFilled)" />
         <template #overlay>
           <a-menu>
             <a-menu-item v-for="(status, service) in serviceStatus" :key="service">

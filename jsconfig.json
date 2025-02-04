@@ -12,6 +12,7 @@
     "dist"
   ],
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../../vue/shop-web/src/components/RepoEvents.vue"
   ]
 }
