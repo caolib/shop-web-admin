@@ -18,7 +18,7 @@ const query = {
 // 初始化用户数据
 const initUsers = async () => {
     await getUsersService(query).then(res => {
-        console.log(res.data.records)
+        // console.log(res.data.records)
         users.value = res.data.records
     })
 }

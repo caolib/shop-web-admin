@@ -4,6 +4,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 // 导入用户相关 API 及共享状态
 import { freezeUser, initUsers, recoverUser, handleFreeze, handleRestore, users, query, } from '@/scripts/user'
+import { updateUserService } from '@/api/user'
 
 // loading 标识，用于控制加载提示
 const loading = ref(false)
@@ -24,7 +25,6 @@ const edit = (record) => {
     editingKey.value = record.id
     form.username = record.username
     form.phone = record.phone
-    // 不复制 status 字段
 }
 
 // 取消编辑：清除编辑状态
@@ -33,16 +33,21 @@ const cancel = () => {
 }
 
 // 保存编辑后的数据：仅更新用户名和手机号
-const save = (key) => {
+const save = async (key) => {
+    const hide = message.loading('保存中...', 0)
     const index = users.value.findIndex(item => item.id === key)
-    if (index > -1) {
-        users.value[index].username = form.username
-        users.value[index].phone = form.phone
-        editingKey.value = ''
-        message.success('更新成功')
-    } else {
-        message.error('保存失败')
+    const data = {
+        id: users.value[index].id,
+        username: form.username,
+        phone: form.phone
     }
+    await updateUserService(data).then(() => {
+        message.success('保存成功')
+        handleSearch()
+        editingKey.value = ''
+    }).finally(() => {
+        hide()
+    })
 }
 
 // 页面加载时初始化用户数据

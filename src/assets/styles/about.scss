@@ -1,0 +1,32 @@
+@use "./variables.scss" as *;
+
+.time-line {
+    margin: 20px;
+}
+
+
+.commit-msg {
+    color:black;
+    display:inline-block; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90vw;
+}
+
+.commit-msg:hover {
+    color: $link-color;
+    text-decoration: underline;
+}
+
+.tl-body {
+    border-radius: 10px;
+    width: fit-content;
+    padding: 10px;
+    box-shadow: $box-shadow;
+    margin-right: 20px;
+}
+
+.about-view{
+    padding: 10px;
+}

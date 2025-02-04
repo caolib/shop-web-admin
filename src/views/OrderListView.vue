@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { onBeforeUnmount, onMounted } from 'vue'
 import {
     loading,
@@ -6,13 +7,24 @@ import {
     query,
     handleSearch,
     pagination,
-    handleView,
     handleDelete,
     columns,
     renderColumn,
-    orderStatus
+    orderStatus,
+    openOrderDetailPanel,
+    getStatusLabel,
+    detailFields
 } from '@/scripts/order'
 import { allowScroll, forbiddenScroll } from '@/utils/page'
+import { message } from 'ant-design-vue'
+import { jumpToItem } from '@/router/jump'
+
+const orderDetailVisible = ref(false)
+const orderDetailData = ref(null)
+
+const handleOpenDetail = (orderId) => {
+    openOrderDetailPanel(orderId, orderDetailData, orderDetailVisible)
+}
 
 onMounted(() => {
     forbiddenScroll()
@@ -59,9 +71,9 @@ onBeforeUnmount(() => {
             <a-spin :spinning="loading">
                 <a-table :dataSource="orders" :rowKey="record => record.id" bordered :pagination="pagination"
                     style="table-layout: fixed;" :scroll="{ x: '1000px', y: '60vh' }">
-                    <!-- 使用 v-for 渲染列 -->
+                    <!-- 使用 v-for 渲染列，排序器已通过 columns 定义 -->
                     <a-table-column v-for="col in columns" :key="col.dataIndex" :title="col.title"
-                        :dataIndex="col.dataIndex" :width="col.width">
+                        :dataIndex="col.dataIndex" :width="col.width" :sorter="col.sorter">
                         <template #default="{ text }">
                             <template v-if="col.dataIndex === 'status'">
                                 <a-tag>{{ renderColumn(col, text) }}</a-tag>
@@ -75,14 +87,53 @@ onBeforeUnmount(() => {
                     <a-table-column title="操作" fixed="right" :width="150">
                         <template #default="{ record }">
                             <div style="display: flex; justify-content: space-between;">
-                                <a-button type="link" @click="handleView(record)">查看</a-button>
-                                <a-button type="link" danger @click="handleDelete(record)">删除</a-button>
+                                <!-- 调用 handleOpenDetail -->
+                                <a-button type="link" @click="handleOpenDetail(record.id)">查看</a-button>
+                                <a-button type="link" danger @click="handleDelete(record.id)">删除</a-button>
                             </div>
                         </template>
                     </a-table-column>
                 </a-table>
             </a-spin>
         </a-card>
+
+        <!-- 修改 a-modal 标签，实现全屏展示 -->
+        <a-modal v-model:open="orderDetailVisible" title="订单详情" width="100%"
+            :body-style="{ height: 'auto', overflow: 'auto' }">
+            <template #default>
+                <a-descriptions v-if="orderDetailData" title="基本信息" :column="3" bordered>
+                    <a-descriptions-item v-for="field in detailFields" :key="field.key" :label="field.label">
+                        {{ field.format ? field.format(orderDetailData[field.key]) : (orderDetailData[field.key] ||
+                            field.default) }}
+                    </a-descriptions-item>
+                </a-descriptions>
+                <a-table v-if="orderDetailData.orderDetails" :dataSource="orderDetailData.orderDetails" rowKey="id"
+                    :pagination="false" style="margin-top:16px" bordered>
+                    <a-table-column title="图片" dataIndex="image">
+                        <template #default="{ text }">
+                            <a-image :src="text" style="width: 80px;" />
+                        </template>
+                    </a-table-column>
+                    <a-table-column title="商品名称" dataIndex="name">
+                        <template #default="{ text, record }">
+                            <a-button type="link" @click="jumpToItem(record.itemId)" style="padding: 0">
+                                {{ text }}
+                            </a-button>
+                        </template>
+                    </a-table-column>
+                    <a-table-column title="数量" dataIndex="num" />
+                    <a-table-column title="单价" dataIndex="price">
+                        <template #default="{ text }">
+                            {{ '￥' + (text / 100).toFixed(2) }}
+                        </template>
+                    </a-table-column>
+                    <a-table-column title="规格" dataIndex="spec" />
+                </a-table>
+            </template>
+            <template #footer>
+                <a-button type="primary" @click="orderDetailVisible = false">确定</a-button>
+            </template>
+        </a-modal>
     </div>
 </template>
 

@@ -1,18 +1,21 @@
 import { ref, reactive } from 'vue'
-import { getOrderPageService } from '@/api/order'
+import { getOrderDetailService, getOrderPageService, removeOrderService } from '@/api/order'
+import { Modal, message } from 'ant-design-vue'
 
 // 加载状态和数据
 const loading = ref(false)
 const orders = ref([])
 
-// 查询条件
+// 查询条件，添加排序字段和排序顺序
 const query = reactive({
     pageNo: 1,
     pageSize: 20,
     id: null,
     status: null,
     createTime: null,
-    endTime: null
+    endTime: null,
+    sortField: null,
+    sortOrder: null
 })
 
 // 修改日期格式转换函数，格式化为 "YYYY-MM-DDTHH:mm:ss"
@@ -49,6 +52,17 @@ const handleSearch = async () => {
     })
 }
 
+// 简化排序器实现：根据字段比较 a 和 b
+const localSort = (field) => (a, b) => {
+    const aVal = a[field] ?? '';
+    const bVal = b[field] ?? '';
+    const numA = parseFloat(aVal), numB = parseFloat(bVal);
+    if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+    }
+    return String(aVal).localeCompare(String(bVal));
+}
+
 // 分页配置
 const pagination = reactive({
     current: query.pageNo,
@@ -71,14 +85,15 @@ const pagination = reactive({
     }
 })
 
-// 操作方法
-const handleView = (record) => {
-    console.log('查看订单', record)
-    // ...实现查看逻辑...
-}
-const handleDelete = (record) => {
-    console.log('删除订单', record)
-    // ...实现删除逻辑...
+// 删除订单事件
+const handleDelete = async (orderId) => {
+    const hide = message.loading('正在删除订单...', 0)
+    await removeOrderService(orderId).then(() => {
+        message.success('订单删除成功')
+        handleSearch()
+    }).finally(() => {
+        hide()
+    })
 }
 
 // 提取订单状态数组
@@ -91,31 +106,85 @@ const orderStatus = [
     { value: 6, label: '交易结束，已评价' }
 ]
 
-// 表格列配置，增加 width 属性自定义列宽
+// 表格列配置，增加 width 属性自定义列宽，以及 sorter 属性
 const columns = [
-    { title: '订单ID', dataIndex: 'id', width: 200 },
-    { title: '用户ID', dataIndex: 'userId', width: 100 },
-    { title: '创建时间', dataIndex: 'createTime', width: 200, customRender: text => new Date(text).toLocaleString() },
-    { title: '更新时间', dataIndex: 'updateTime', width: 200, customRender: text => new Date(text).toLocaleString() },
+    { title: '订单ID', dataIndex: 'id', width: 200, sorter: localSort('id') },
+    { title: '用户ID', dataIndex: 'userId', width: 100, sorter: localSort('userId') },
     {
-        title: '状态',
-        dataIndex: 'status',
-        width: 200,
+        title: '创建时间', dataIndex: 'createTime', width: 200, sorter: localSort('createTime'),
+        customRender: text => new Date(text).toLocaleString()
+    },
+    {
+        title: '更新时间', dataIndex: 'updateTime', width: 200, sorter: localSort('updateTime'),
+        customRender: text => new Date(text).toLocaleString()
+    },
+    {
+        title: '状态', dataIndex: 'status', width: 200, sorter: localSort('status'),
         customRender: text => {
-            const statusItem = orderStatus.find(item => item.value === text)
-            return statusItem ? statusItem.label : text
+            const statusItem = orderStatus.find(item => item.value === text);
+            return statusItem ? statusItem.label : text;
         }
     },
-    { title: '总费用', dataIndex: 'totalFee', width: 120, customRender: text => (text / 100).toFixed(2) },
-    { title: '支付时间', dataIndex: 'payTime', width: 200, customRender: text => text ? new Date(text).toLocaleString() : '-' },
-    { title: '配送时间', dataIndex: 'consignTime', width: 200, customRender: text => text ? new Date(text).toLocaleString() : '-' },
-    { title: '订单结束时间', dataIndex: 'endTime', width: 200, customRender: text => text ? new Date(text).toLocaleString() : '-' },
-    { title: '关闭时间', dataIndex: 'closeTime', width: 200, customRender: text => text ? new Date(text).toLocaleString() : '-' },
+    {
+        title: '总费用', dataIndex: 'totalFee', width: 120, sorter: localSort('totalFee'),
+        customRender: text => (text / 100).toFixed(2)
+    },
+    {
+        title: '支付时间', dataIndex: 'payTime', width: 200, sorter: localSort('payTime'),
+        customRender: text => text ? new Date(text).toLocaleString() : '-'
+    },
+    {
+        title: '配送时间', dataIndex: 'consignTime', width: 200, sorter: localSort('consignTime'),
+        customRender: text => text ? new Date(text).toLocaleString() : '-'
+    },
+    {
+        title: '订单结束时间', dataIndex: 'endTime', width: 200, sorter: localSort('endTime'),
+        customRender: text => text ? new Date(text).toLocaleString() : '-'
+    },
+    {
+        title: '关闭时间', dataIndex: 'closeTime', width: 200, sorter: localSort('closeTime'),
+        customRender: text => text ? new Date(text).toLocaleString() : '-'
+    }
 ]
 
 // 根据列定义处理自定义渲染
 const renderColumn = (col, text) => {
     return col.customRender ? col.customRender(text) : text
+}
+
+// 将字符串状态转换为数字并返回对应文本
+const getStatusLabel = (value) => {
+    const numVal = Number(value)
+    const statusItem = orderStatus.find(item => item.value === numVal)
+    return statusItem ? statusItem.label : value
+}
+
+// 定义订单详情描述字段数组
+const detailFields = [
+    { label: '订单ID', key: 'id' },
+    { label: '用户名', key: 'username', default: '-' },
+    { label: '总费用', key: 'totalFee', format: v => v ? '￥' + (v / 100).toFixed(2) : '-' },
+    { label: '订单状态', key: 'status', format: v => getStatusLabel(v) },
+    { label: '创建时间', key: 'createTime', default: '-' },
+    { label: '支付时间', key: 'payTime', default: '-' },
+    { label: '配送时间', key: 'consignTime', default: '-' },
+    { label: '订单结束时间', key: 'endTime', default: '-' },
+    { label: '关闭时间', key: 'closeTime', default: '-' },
+    { label: '评论时间', key: 'commentTime', default: '-' },
+    { label: '更新时间', key: 'updateTime', default: '-' }
+]
+
+// 根据订单ID更新数据并显示订单详情面板
+const openOrderDetailPanel = (orderId, orderDetailData, orderDetailVisible) => {
+    const hide = message.loading('正在获取订单详情...', 0)
+    return getOrderDetailService(orderId)
+        .then(res => {
+            orderDetailData.value = res.data
+            orderDetailVisible.value = true
+        })
+        .finally(() => {
+            hide()
+        })
 }
 
 export {
@@ -124,9 +193,11 @@ export {
     query,
     handleSearch,
     pagination,
-    handleView,
     handleDelete,
     columns,
     renderColumn,
-    orderStatus
+    orderStatus,
+    getStatusLabel,
+    detailFields,
+    openOrderDetailPanel
 }

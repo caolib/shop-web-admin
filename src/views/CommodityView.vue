@@ -18,6 +18,7 @@ import {
   validateField,
   validateImage
 } from '@/scripts/commodity'
+import { handleImageError } from '@/utils/handleImg'
 
 onMounted(() => {
   // 禁用页面滚动

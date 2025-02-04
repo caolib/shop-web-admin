@@ -1,34 +1,21 @@
 <script setup>
-import { onMounted, onUnmounted, h } from 'vue'
-import { useRoute } from 'vue-router' // 新增 useRoute 导入
+import { ref, onMounted, onUnmounted, h } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   serviceStatus,
   allServicesUp,
   minimize,
   toggleMaximize,
   close,
-  flushPage
+  flushPage,
+  appWindow
 } from '@/scripts/app'
 import zhCN from "ant-design-vue/es/locale/zh_CN";
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 dayjs.locale("zh-cn");
-
 import {
-  FileTextOutlined,
-  HomeOutlined,
-  LogoutOutlined,
-  SearchOutlined,
-  ShoppingCartOutlined,
-  UserOutlined,
-  CheckCircleFilled,
-  ExclamationCircleFilled,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  ExpandOutlined,
-  CloseOutlined,
-  MinusOutlined,
-  ReloadOutlined
+  FileTextOutlined, HomeOutlined, LogoutOutlined, SearchOutlined, ShoppingCartOutlined, UserOutlined, CheckCircleFilled, ExclamationCircleFilled, ArrowLeftOutlined, ArrowRightOutlined, ExpandOutlined, CloseOutlined, MinusOutlined, ReloadOutlined, PayCircleOutlined
 } from '@ant-design/icons-vue'
 import { checkSrv, getServiceStatus } from '@/api/status.js'
 import { logout } from '@/api/login.js'
@@ -43,7 +30,7 @@ const isActive = (path) => route?.path === path;
 onMounted(() => {
   flushUser()
   getServiceStatus(serviceStatus)
-  const intervalId = setInterval(() => getServiceStatus(serviceStatus), 60000) // 60s执行一次
+  const intervalId = setInterval(() => getServiceStatus(serviceStatus), 60000)
   onUnmounted(() => clearInterval(intervalId))
 });
 
@@ -65,20 +52,13 @@ onMounted(() => {
         </a-breadcrumb-item>
         <!--登录-->
         <a-breadcrumb-item>
-          <router-link v-if="isLogin" to="/" style="cursor: unset;" :class="['route-link']">
+          <span v-if="isLogin" style="padding: 5px;border-radius: 5px" class="route-link">
             <user-outlined />
             <span> 你好,{{ user.username }} </span>
-          </router-link>
+          </span>
           <router-link v-else to="/login" :class="['route-link', { active: isActive('/login') }]">
             <user-outlined />
             请登录
-          </router-link>
-        </a-breadcrumb-item>
-
-        <!--注册-->
-        <a-breadcrumb-item v-if="!isLogin">
-          <router-link to="" :class="['route-link']">
-            <span>注册</span>
           </router-link>
         </a-breadcrumb-item>
 
@@ -106,6 +86,13 @@ onMounted(() => {
           </router-link>
         </a-breadcrumb-item>
 
+        <!--关于-->
+        <a-breadcrumb-item>
+          <router-link to="/about" :class="['route-link', { active: isActive('/about') }]">
+            关于
+          </router-link>
+        </a-breadcrumb-item>
+
         <!--退出登录-->
         <a-breadcrumb-item v-if="isLogin" style="color: gray;" class="logout" @click="logout('')">
           <LogoutOutlined />
@@ -116,12 +103,12 @@ onMounted(() => {
 
     </div>
 
-    <!-- 窗口操作 -->
+    <!-- 修改窗口操作区域，使用 v-if 渲染图标 -->
     <div class="window-controls">
       <!--服务状态-->
       <a-dropdown>
         <a-button style="color: #00b96b" class="win-btn" v-if="allServicesUp" :icon="h(CheckCircleFilled)" />
-        <ExclamationCircleFilled style="color: #f30213" v-else />
+        <a-button style="color: #f30213" class="win-btn" v-else :icon="h(ExclamationCircleFilled)" />
         <template #overlay>
           <a-menu>
             <a-menu-item v-for="(status, service) in serviceStatus" :key="service">
@@ -139,8 +126,10 @@ onMounted(() => {
       <a-button class="win-btn" @click="flushPage" :icon="h(ReloadOutlined)" />
       <!--最小化-->
       <a-button class="win-btn" @click="minimize" :icon="h(MinusOutlined)" />
-      <!--切换最大化-->
-      <a-button class="win-btn" @click="toggleMaximize" :icon="h(ExpandOutlined)" />
+      <!--切换最大化按钮-->
+      <a-button class="win-btn" @click="toggleMaximize">
+        <expand-outlined />
+      </a-button>
       <!--关闭-->
       <a-button class="win-btn close" @click="close" :icon="h(CloseOutlined)" />
     </div>

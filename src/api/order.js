@@ -53,11 +53,30 @@ const getOrderPageService = (query) => {
 }
 
 
+/**
+ * 删除订单
+ * @param id 订单ID
+ */
+const removeOrderService = (id) => {
+  return request.delete(`/orders/manage/${id}`)
+}
+
+/**
+ * 获取订单详情
+ * @param id 订单ID
+ */
+const getOrderDetailService = (id) => {
+  return request.get(`/orders/manage/${id}`)
+}
+
+
 export {
   createOrderService,
   getOrderByIdService,
   getUserOrderDetailsService,
   getUserOrdersService,
   deleteOrdersService,
-  getOrderPageService
+  getOrderPageService,
+  removeOrderService,
+  getOrderDetailService
 }
