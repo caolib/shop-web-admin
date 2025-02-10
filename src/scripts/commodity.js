@@ -1,7 +1,7 @@
-import { updateCommodityService } from '@/api/commodity'
+import { addCommodityService, updateCommodityService } from '@/api/commodity'
 import { queryCommodityById } from '@/api/search'
 import { message } from 'ant-design-vue'
-import { ref, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 
 const commodity = ref(null)
 const initialCommodity = ref(null) // 用于保存初始状态
@@ -24,7 +24,7 @@ const fields = [
 // 商品状态选项
 const statusOptions = [
     { value: 1, label: "正常" },
-    { value: 2, label: "下架" },
+    { value: 2, label: "已下架" },
     { value: 3, label: "删除" }
 ]
 
@@ -100,6 +100,37 @@ const saveCommodity = async () => {
 
 }
 
+// 是否显示添加商品表单
+const showAddForm = ref(false)
+// 新商品对象
+const newCommodity = reactive({
+    name: '',
+    price: 0,
+    image: '',
+    stock: 0,
+    category: '',
+    brand: '',
+    sold: 0,
+    commentCount: 0,
+    spec: '',
+    status: 1
+})
+
+// 切换添加商品表单显示状态
+const toggleAddForm = () => { showAddForm.value = !showAddForm.value }
+
+// 添加商品
+const addCommodity = async () => {
+    const hide = message.loading('正在添加商品...', 0)
+    await addCommodityService(newCommodity).then(() => {
+        message.success('添加商品成功')
+    }).finally(() => {
+        hide()
+        toggleAddForm()
+    })
+}
+
+
 export {
     commodity,
     initialCommodity,
@@ -111,5 +142,9 @@ export {
     canSave,
     saveCommodity,
     validateField,
-    validateImage
+    validateImage,
+    showAddForm,
+    newCommodity,
+    toggleAddForm,
+    addCommodity
 }
