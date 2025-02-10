@@ -6,6 +6,8 @@ import { jumpToItem } from '@/router/jump'
 import { CaretDownFilled, CaretUpFilled } from '@ant-design/icons-vue'
 import { handleImageError } from '@/utils/handleImg.js'
 import { presetBrands, presetCategories, sortOptions } from "@/scripts/search";
+import { showAddForm, statusOptions, toggleAddForm, newCommodity, addCommodity } from '@/scripts/commodity'
+import { PlusCircleFilled } from '@ant-design/icons-vue'
 
 const commodity = ref([]) // 商品列表
 const total = ref(0) // 商品总数
@@ -66,8 +68,8 @@ const setBrand = (brand) => {
 }
 
 // 设置分类
-const setCategory = (gategory) => {
-  searchParams.category = gategory
+const setCategory = (category) => {
+  searchParams.category = category
   searchCommodity()
 }
 
@@ -112,7 +114,6 @@ const toggleSort = (e) => {
 }
 
 
-
 </script>
 
 <template>
@@ -128,13 +129,16 @@ const toggleSort = (e) => {
       <!-- 分类 -->
       <a-row class="condition-row">
         <span>分类</span>
-        <a-input v-model:value="inputCategory" allow-clear placeholder="输入分类" @pressEnter="setBrand(inputBrand)"
+        <a-input v-model:value="inputCategory" allow-clear placeholder="输入分类" @pressEnter="setBrand(inputCategory)"
           style="width: 10vw;" />
         <div>
           <span v-for="cate in presetCategories" :key="cate" @click="setCategory(cate)" class="condition-row-item">{{
             cate
-          }}</span>
+            }}</span>
         </div>
+        <!-- 添加商品按钮 -->
+        <a-button type="primary" style="margin-left:auto;" :icon="h(PlusCircleFilled)"
+          @click="toggleAddForm">新增</a-button>
       </a-row>
 
       <!-- 品牌 -->
@@ -226,6 +230,10 @@ const toggleSort = (e) => {
                 </div>
                 <div style="margin-top: 5px;">
                   <span>{{ item.commentCount }} 条评论</span>
+                  <a-tag :color="item.status === 2 ? `red` : ``" style="margin-left: 10px;">{{ statusOptions.find(s =>
+                    s.value
+                    === item.status)?.label
+                    }}</a-tag>
                 </div>
               </template>
 
@@ -234,6 +242,50 @@ const toggleSort = (e) => {
         </a-col>
       </a-row>
     </div>
+
+    <!-- 新增添加商品表单 -->
+    <a-modal v-model:open="showAddForm" title="添加商品">
+      <a-form layout="horizontal" :labelCol="{ span: 6 }" :wrapperCol="{ span: 14 }" ref="addFormRef">
+        <a-form-item label="商品名" :rules="[{ required: true, message: '请输入商品名称' }]">
+          <a-input v-model:value="newCommodity.name" />
+        </a-form-item>
+        <a-form-item label="分类" :rules="[{ required: true, message: '请输入分类' }]">
+          <a-input v-model:value="newCommodity.category" />
+        </a-form-item>
+        <a-form-item label="品牌" :rules="[{ required: true, message: '请输入品牌' }]">
+          <a-input v-model:value="newCommodity.brand" />
+        </a-form-item>
+        <a-form-item label="单价（分）">
+          <a-input-number prefix="￥" v-model:value="newCommodity.price" style="width: 100%;" />
+        </a-form-item>
+        <a-form-item label="库存数量">
+          <a-input-number v-model:value="newCommodity.stock" style="width: 100%;" />
+        </a-form-item>
+        <a-form-item label="图片URL">
+          <a-input v-model:value="newCommodity.image" />
+        </a-form-item>
+        <a-form-item label="销量">
+          <a-input-number v-model:value="newCommodity.sold" style="width: 100%;" />
+        </a-form-item>
+        <a-form-item label="评论数">
+          <a-input-number v-model:value="newCommodity.commentCount" style="width: 100%;" />
+        </a-form-item>
+        <!-- 添加状态下拉菜单 -->
+        <a-form-item label="状态">
+          <a-select v-model:value="newCommodity.status">
+            <a-select-option :value="1">正常</a-select-option>
+            <a-select-option :value="2">已下架</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="规格（JSON）">
+          <a-input v-model:value="newCommodity.spec" />
+        </a-form-item>
+      </a-form>
+      <template #footer>
+        <a-button @click="toggleAddForm">取消</a-button>
+        <a-button type="primary" @click="addCommodity">确定</a-button>
+      </template>
+    </a-modal>
 
   </div>
 </template>

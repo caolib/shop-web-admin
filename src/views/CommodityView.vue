@@ -75,7 +75,12 @@ onBeforeUnmount(() => {
           </div>
           <!-- 操作按钮区域 -->
           <div class="commodity-buttons">
-            <a-button type="primary" size="large" @click="saveCommodity" :disabled="!canSave">
+            <a-tooltip v-if="!canSave" title="尚未修改或内容不合法">
+              <a-button type="primary" size="large" :disabled="true">
+                保存
+              </a-button>
+            </a-tooltip>
+            <a-button v-else type="primary" size="large" @click="saveCommodity">
               保存
             </a-button>
           </div>
