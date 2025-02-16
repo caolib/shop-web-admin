@@ -15,7 +15,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 dayjs.locale("zh-cn");
 import {
-  FileTextOutlined, HomeOutlined, LogoutOutlined, SearchOutlined, ShoppingCartOutlined, UserOutlined, CheckCircleFilled, ExclamationCircleFilled, ArrowLeftOutlined, ArrowRightOutlined, ExpandOutlined, CloseOutlined, MinusOutlined, ReloadOutlined, PayCircleOutlined
+  FileTextOutlined, HomeOutlined, LogoutOutlined, SearchOutlined, ShoppingCartOutlined, UserOutlined, CheckCircleFilled, ExclamationCircleFilled, ArrowLeftOutlined, ArrowRightOutlined, ExpandOutlined, CloseOutlined, MinusOutlined, ReloadOutlined, PayCircleOutlined, PieChartOutlined
 } from '@ant-design/icons-vue'
 import { checkSrv, getServiceStatus } from '@/api/status.js'
 import { logout } from '@/api/login.js'
@@ -86,6 +86,14 @@ onMounted(() => {
             <router-link to="/order-list" :class="['route-link', { active: isActive('/order-list') }]">
               <FileTextOutlined />
               订单管理
+            </router-link>
+          </a-breadcrumb-item>
+
+          <!--统计-->
+          <a-breadcrumb-item>
+            <router-link to="/statistics" :class="['route-link', { active: isActive('/statistics') }]">
+              <PieChartOutlined />
+              统计
             </router-link>
           </a-breadcrumb-item>
 
