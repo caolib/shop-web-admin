@@ -20,6 +20,7 @@
     height: auto;
     width: 20vw;
     float: left;
+    min-width: 230px;
 }
 
 ul.ant-menu.ant-menu-root.ant-menu-inline {
@@ -47,6 +48,7 @@ ul.ant-menu.ant-menu-root.ant-menu-inline {
     margin-top: 10px;
     margin-left: 5px;
     width: auto;
+    min-width: 150px;
 }
 
 /* 价格文本 */

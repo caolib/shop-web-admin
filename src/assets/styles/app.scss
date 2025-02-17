@@ -9,6 +9,7 @@
   background: #f2f4f7;
   width: 100%;
   z-index: 1000;
+  min-width: 1000px;
   border-bottom: $border;
 }
 
@@ -54,4 +55,8 @@ a:hover{
 .win-btn.close:hover {
   color: white;
   background: #f30213ba;
+}
+
+.window-controls{
+  min-width: 240px;
 }

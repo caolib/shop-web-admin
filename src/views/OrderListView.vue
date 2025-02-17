@@ -39,9 +39,9 @@ onBeforeUnmount(() => {
 <template>
     <div class="order-list-view">
         <h2>订单管理</h2>
-        <a-card>
+        <a-card class="order-list-card">
             <!-- 查询条件区域 -->
-            <a-form layout="inline" style="margin-bottom: 16px;">
+            <a-form layout="inline" style="margin-bottom: 16px;min-width: 1150px;">
                 <a-form-item label="订单ID">
                     <a-input allowClear v-model:value="query.id" placeholder="订单ID" />
                 </a-form-item>

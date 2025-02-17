@@ -1,11 +1,11 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "shop-web-admin",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "identifier": "io.github.caolib",
   "build": {
     "beforeDevCommand": "pnpm dev",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://localhost:14200",
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
   },
@@ -13,8 +13,10 @@
     "windows": [
       {
         "title": "网上商店-管理员端",
-        "width": 800,
-        "height": 600,
+        "width": 1200,
+        "height": 750,
+        "minHeight": 550,
+        "minWidth": 1000,
         "label": "main",
         "fullscreen": false,
         "resizable": true,

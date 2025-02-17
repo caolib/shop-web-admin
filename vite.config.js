@@ -23,7 +23,7 @@ export default defineConfig(async () => ({
   // Vite 选项，专门为 Tauri 开发和构建定制
   clearScreen: false, // 防止屏蔽掉 rust 错误信息
   server: {
-    port: 1420, // 固定端口，确保 Tauri 预期使用相同端口
+    port: 14200, // 固定端口，确保 Tauri 预期使用相同端口
     strictPort: true, // 若端口被占用则报错
     host: host || false, // 根据环境变量设置 host，如果没有则使用默认
     hmr: host
@@ -39,7 +39,8 @@ export default defineConfig(async () => ({
     },
     proxy: {
       '/api': { // 匹配请求路径中含有 /api 的请求
-        target: 'http://localhost:8080', // 后端服务地址
+        // target: 'http://localhost:8080', // 后端服务地址
+        target: 'http://laptop:8080', // 后端服务地址
         changeOrigin: true,
         // rewrite 会在请求中去掉 /api 前缀
         rewrite: (path) => path.replace(/^\/api/, '')
