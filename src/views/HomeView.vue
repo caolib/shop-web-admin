@@ -1,6 +1,6 @@
 <script setup>
 import { menuItems } from '@/config/home'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import {
   handleClick,
   handleSearchClick,
@@ -11,10 +11,17 @@ import {
 import { jumpToItem } from '@/router/jump';
 import { handleImageError } from '@/utils/handleImg';
 
+const loading = ref(false)
+
 // 初始化商品信息
 onMounted(() => {
-  search()
+  loading.value = true
+  search().then(() => {
+    loading.value = false
+  })
 })
+
+
 
 </script>
 
@@ -44,7 +51,28 @@ onMounted(() => {
       </div>
 
       <!--商品展示卡片-->
-      <div class="commodity-display">
+      <a-spin :spinning="loading" tip="loading...">
+        <div class="commodity-display">
+          <a-row>
+            <a-col :span="6" v-for="item in commodity" :key="item.id">
+              <a-card class="commodity-card" hoverable @click="jumpToItem(item.id)">
+                <template #cover>
+                  <img :src="item.image" alt="" @error="handleImageError" />
+                </template>
+                <a-card-meta>
+                  <template #title>
+                    <span class="price">￥{{ item.price }}</span>
+                  </template>
+                  <template #description>
+                    <span style="color: black">{{ item.name }}</span>
+                  </template>
+                </a-card-meta>
+              </a-card>
+            </a-col>
+          </a-row>
+        </div>
+      </a-spin>
+      <!-- <div class="commodity-display">
         <a-row>
           <a-col :span="6" v-for="item in commodity" :key="item.id">
             <a-card class="commodity-card" hoverable @click="jumpToItem(item.id)">
@@ -62,7 +90,8 @@ onMounted(() => {
             </a-card>
           </a-col>
         </a-row>
-      </div>
+      </div> -->
+
     </div>
 
   </div>
