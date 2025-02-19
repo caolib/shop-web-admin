@@ -11,16 +11,21 @@
     width: 100%;
     height: 100px;
     display: flex;
+    margin-left: 10px;
     justify-content: center;
 }
 
 /* 商品分类菜单 */
 .commodity-classify {
-    background: #f0f2f5;
     height: auto;
     width: 20vw;
     float: left;
     min-width: 230px;
+    position: sticky;
+    top: 0;
+    z-index: 10; // 确保不会被覆盖
+    // 如有需要，可添加背景色
+    background-color: #fff;
 }
 
 ul.ant-menu.ant-menu-root.ant-menu-inline {
