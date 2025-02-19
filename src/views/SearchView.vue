@@ -41,7 +41,11 @@ const inputKey = ref('')
 const inputBrand = ref('')
 const inputCategory = ref('')
 
+const loading = ref(false)
+
 onMounted(() => {
+  loading.value = true
+
   // 解析路径参数
   const { key, category } = router.currentRoute.value.query;
   // 设置搜索参数
@@ -51,7 +55,9 @@ onMounted(() => {
   }
   if (category) searchParams.category = category
 
-  searchCommodity()
+  searchCommodity().finally(() => {
+    loading.value = false
+  })
 })
 
 
@@ -134,7 +140,7 @@ const toggleSort = (e) => {
         <div>
           <span v-for="cate in presetCategories" :key="cate" @click="setCategory(cate)" class="condition-row-item">{{
             cate
-            }}</span>
+          }}</span>
         </div>
         <!-- 添加商品按钮 -->
         <a-button type="primary" style="margin-left:auto;" :icon="h(PlusCircleFilled)"
@@ -148,7 +154,7 @@ const toggleSort = (e) => {
           style="width: 10vw;" />
         <div>
           <span v-for="brand in presetBrands" :key="brand" @click="setBrand(brand)" class="condition-row-item">{{ brand
-            }}</span>
+          }}</span>
         </div>
       </a-row>
 
@@ -197,7 +203,7 @@ const toggleSort = (e) => {
           <!-- 条件标签 -->
           <a-tag v-if="searchParams.brand" closable @close="setBrand('')">{{ searchParams.brand }}</a-tag>
           <a-tag v-if="searchParams.category" closable @close="setCategory('')">{{ searchParams.category
-            }}</a-tag>
+          }}</a-tag>
           <a-tag v-if="priceTag" closable @close="resetPrice">
             {{ priceTag }}
           </a-tag>
@@ -209,39 +215,41 @@ const toggleSort = (e) => {
     </div>
 
     <!--商品卡片展示-->
-    <div class="commodity-display">
-      <a-row>
-        <a-col :span="4" v-for="item in commodity" :key="item.id">
-          <a-card class="commodity-card" hoverable @click="jumpToItem(item.id)">
-            <!-- 封面 -->
-            <template #cover>
-              <img :src="item.image" :alt="item.name" @error="handleImageError" />
-            </template>
-            <a-card-meta>
-              <!-- 价格 -->
-              <template #title>
-                <span class="price">￥{{ (item.price / 100).toFixed(2) }}</span>
+    <a-spin :spinning="loading">
+      <div class="commodity-display">
+        <a-row>
+          <a-col :span="4" v-for="item in commodity" :key="item.id">
+            <a-card class="commodity-card" hoverable @click="jumpToItem(item.id)">
+              <!-- 封面 -->
+              <template #cover>
+                <img :src="item.image" :alt="item.name" @error="handleImageError" />
               </template>
-              <!-- 商品描述 -->
-              <template #description>
-                <span class="commodity-desc">{{ item.name }}</span>
-                <div style="margin-top: 5px;">
-                  <span>已售出：{{ item.sold }}</span>
-                </div>
-                <div style="margin-top: 5px;">
-                  <span>{{ item.commentCount }} 条评论</span>
-                  <a-tag :color="item.status === 2 ? `red` : ``" style="margin-left: 10px;">{{ statusOptions.find(s =>
-                    s.value
-                    === item.status)?.label
-                    }}</a-tag>
-                </div>
-              </template>
+              <a-card-meta>
+                <!-- 价格 -->
+                <template #title>
+                  <span class="price">￥{{ (item.price / 100).toFixed(2) }}</span>
+                </template>
+                <!-- 商品描述 -->
+                <template #description>
+                  <span class="commodity-desc">{{ item.name }}</span>
+                  <div style="margin-top: 5px;">
+                    <span>已售出：{{ item.sold }}</span>
+                  </div>
+                  <div style="margin-top: 5px;">
+                    <span>{{ item.commentCount }} 条评论</span>
+                    <a-tag :color="item.status === 2 ? `red` : ``" style="margin-left: 10px;">{{statusOptions.find(s =>
+                      s.value
+                      === item.status)?.label
+                      }}</a-tag>
+                  </div>
+                </template>
 
-            </a-card-meta>
-          </a-card>
-        </a-col>
-      </a-row>
-    </div>
+              </a-card-meta>
+            </a-card>
+          </a-col>
+        </a-row>
+      </div>
+    </a-spin>
 
     <!-- 新增添加商品表单 -->
     <a-modal v-model:open="showAddForm" title="添加商品">
