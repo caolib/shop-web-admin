@@ -49,13 +49,22 @@ onMounted(() => {
           <!--登录-->
           <a-breadcrumb-item>
             <span v-if="isLogin" style="padding: 5px;border-radius: 5px">
-              <user-outlined />
-              {{ user.username ? (user.username.length > 6 ? user.username.substring(0, 6) :
-                user.username) : '' }}
-            </span>
-            <router-link v-else to="/login" :class="['route-link', { active: isActive('/login') }]">
-              <user-outlined />
-              请登录
+              <span v-if="isLogin" style="padding: 5px;border-radius: 5px">
+                <user-outlined />
+                {{ user.username ? (user.username.length > 6 ? user.username.substring(0, 6) :
+                  user.username) : '' }}
+              </span>
+              <router-link v-else to="/login" :class="['route-link', { active: isActive('/login') }]">
+                <user-outlined />
+                请登录
+              </router-link>
+          </a-breadcrumb-item>
+
+          <!--首页-->
+          <a-breadcrumb-item>
+            <router-link to="/" :class="['route-link', { active: isActive('/') }]">
+              <home-outlined />
+              首页
             </router-link>
           </a-breadcrumb-item>
 
@@ -126,6 +135,7 @@ onMounted(() => {
             <a-menu>
               <a-menu-item v-for="(status, service) in serviceStatus" :key="service">
                 <span @click="checkSrv(status[0])" :style="{ color: status[1] ? '#00b96b' : '#f30213' }">{{ status[0]
+                }}</span>
                 }}</span>
               </a-menu-item>
             </a-menu>
