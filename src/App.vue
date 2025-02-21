@@ -47,7 +47,7 @@ onMounted(() => {
       <div class="bread-navbar">
         <a-breadcrumb separator=" ">
           <!--登录-->
-          <a-breadcrumb-item>
+          <a-breadcrumb-item style="margin-left: 5px;">
             <span v-if="isLogin" style="padding: 5px;border-radius: 5px">
               <user-outlined />
               {{ user.username ? (user.username.length > 6 ? user.username.substring(0, 6) :
