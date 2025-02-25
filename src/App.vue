@@ -48,9 +48,10 @@ onMounted(() => {
         <a-breadcrumb separator=" ">
           <!--登录-->
           <a-breadcrumb-item>
-            <span v-if="isLogin" style="padding: 5px;border-radius: 5px" class="route-link">
+            <span v-if="isLogin" style="padding: 5px;border-radius: 5px">
               <user-outlined />
-              <span> 你好,{{ user.username }} </span>
+              <span> 你好,{{ user.username ? (user.username.length > 6 ? user.username.substring(0, 6) + '...' :
+                user.username) : '' }} </span>
             </span>
             <router-link v-else to="/login" :class="['route-link', { active: isActive('/login') }]">
               <user-outlined />
