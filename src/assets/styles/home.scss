@@ -12,6 +12,7 @@
     height: 100px;
     display: flex;
     margin-left: 10px;
+    margin-left: 10px;
     justify-content: center;
 }
 
@@ -22,9 +23,8 @@
     float: left;
     min-width: 230px;
     position: sticky;
-    top: 0;
+    top: 30px;
     z-index: 10; // 确保不会被覆盖
-    // 如有需要，可添加背景色
     background-color: #fff;
 }
 

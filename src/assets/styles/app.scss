@@ -14,16 +14,10 @@
 }
 
 .bread-navbar {
-  padding: 5px 15px;
-}
-
-// 顶部导航栏按钮
-.route-link {
-  border: 1px solid transparent;
+  padding: 5px;
 }
 
 .route-link:hover {
-  // border: 1px solid $primary-color;
   color: $primary-color !important;
 }
 
