@@ -87,4 +87,7 @@ onMounted(() => {
     <div>
         <div ref="chartContainer" style="width: 600px; height: 400px;"></div>
     </div>
+    <div>
+        <div ref="chartContainer" style="width: 600px; height: 400px;"></div>
+    </div>
 </template>
