@@ -16,6 +16,63 @@
     "core:window:allow-hide",
     "core:window:allow-show",
     "opener:allow-open-url",
-    "opener:default"
+    "opener:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [
+        {
+          "path": "$APPDATA/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        {
+          "path": "$APPCONFIG/config/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        {
+          "path": "$APPCONFIG/config/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [
+        {
+          "path": "$APPCONFIG/config/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-mkdir",
+      "allow": [
+        {
+          "path": "$APPCONFIG/config"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        {
+          "path": "$APPCONFIG/config/*"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-appconfig-write",
+      "allow": [
+        {
+          "path": "config/*"
+        }
+      ]
+    }
   ]
 }

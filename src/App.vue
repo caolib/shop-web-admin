@@ -106,6 +106,13 @@ onMounted(() => {
             </router-link>
           </a-breadcrumb-item>
 
+          <!-- 设置 -->
+          <a-breadcrumb-item>
+            <router-link to="/config" :class="['route-link', { active: isActive('/config') }]">
+              设置
+            </router-link>
+          </a-breadcrumb-item>
+
           <!--退出登录-->
           <a-breadcrumb-item v-if="isLogin" style="color: gray;" class="logout" @click="logout('')">
             <LogoutOutlined />

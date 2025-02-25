@@ -57,6 +57,15 @@ const router = createRouter({
       name: 'statistics',
       component: StatisticsView,
     },
+    {
+      path: '/config',
+      name: 'config',
+      component: () => import('../views/ConfigView.vue'),
+      meta: {
+        title: '应用配置',
+        requiresAuth: true
+      }
+    },
   ],
 })
 

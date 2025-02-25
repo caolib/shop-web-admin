@@ -46,5 +46,5 @@ export default defineConfig(async () => ({
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
-  },
+  }
 }))
