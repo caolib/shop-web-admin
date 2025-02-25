@@ -1,0 +1,22 @@
+@use "./variables.scss" as *;
+
+.config-container {
+    padding: 20px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.url-input-group {
+    width: 100%;
+}
+
+.url-option-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
