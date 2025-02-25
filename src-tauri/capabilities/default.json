@@ -22,7 +22,19 @@
       "identifier": "fs:allow-exists",
       "allow": [
         {
-          "path": "$APPDATA/*"
+          "path": "$RESOURCE/*"
+        },
+        {
+          "path": "$RESOURCE/**/*"
+        },
+        {
+          "path": "$APPLOCALDATA/**/*"
+        },
+        {
+          "path": "$TEMP/**/*"
+        },
+        {
+          "path": "./*"
         }
       ]
     },
@@ -30,7 +42,22 @@
       "identifier": "fs:scope",
       "allow": [
         {
-          "path": "$APPCONFIG/config/*"
+          "path": "$RESOURCE"
+        },
+        {
+          "path": "$RESOURCE/*"
+        },
+        {
+          "path": "$RESOURCE/**/*"
+        },
+        {
+          "path": "$APPLOCALDATA/**/*"
+        },
+        {
+          "path": "$TEMP/**/*"
+        },
+        {
+          "path": "./*"
         }
       ]
     },
@@ -38,7 +65,16 @@
       "identifier": "fs:allow-read-file",
       "allow": [
         {
-          "path": "$APPCONFIG/config/*"
+          "path": "$RESOURCE/config.json"
+        },
+        {
+          "path": "$APPLOCALDATA/config/config.json"
+        },
+        {
+          "path": "$TEMP/shop-web-admin-config/config.json"
+        },
+        {
+          "path": "./config.json"
         }
       ]
     },
@@ -46,7 +82,25 @@
       "identifier": "fs:allow-write-file",
       "allow": [
         {
-          "path": "$APPCONFIG/config/*"
+          "path": "$RESOURCE/config.json"
+        },
+        {
+          "path": "$RESOURCE/test.tmp"
+        },
+        {
+          "path": "$APPLOCALDATA/config/config.json"
+        },
+        {
+          "path": "$TEMP/shop-web-admin-config/config.json"
+        },
+        {
+          "path": "$APPLOCALDATA/config/test.tmp"
+        },
+        {
+          "path": "$TEMP/shop-web-admin-config/test.tmp"
+        },
+        {
+          "path": "./config.json"
         }
       ]
     },
@@ -54,7 +108,16 @@
       "identifier": "fs:allow-mkdir",
       "allow": [
         {
-          "path": "$APPCONFIG/config"
+          "path": "$RESOURCE"
+        },
+        {
+          "path": "$APPLOCALDATA/config"
+        },
+        {
+          "path": "$TEMP/shop-web-admin-config"
+        },
+        {
+          "path": "./config"
         }
       ]
     },
@@ -62,15 +125,39 @@
       "identifier": "fs:allow-write-text-file",
       "allow": [
         {
-          "path": "$APPCONFIG/config/*"
+          "path": "$RESOURCE/config.json"
+        },
+        {
+          "path": "$RESOURCE/test.tmp"
+        },
+        {
+          "path": "$APPLOCALDATA/config/config.json"
+        },
+        {
+          "path": "$TEMP/shop-web-admin-config/config.json"
+        },
+        {
+          "path": "$APPLOCALDATA/config/test.tmp"
+        },
+        {
+          "path": "$TEMP/shop-web-admin-config/test.tmp"
+        },
+        {
+          "path": "./config.json"
         }
       ]
     },
     {
-      "identifier": "fs:allow-appconfig-write",
+      "identifier": "fs:allow-remove",
       "allow": [
         {
-          "path": "config/*"
+          "path": "$RESOURCE/test.tmp"
+        },
+        {
+          "path": "$APPLOCALDATA/config/test.tmp"
+        },
+        {
+          "path": "$TEMP/shop-web-admin-config/test.tmp"
         }
       ]
     }
