@@ -1,17 +1,23 @@
 import axios from 'axios'
 import router from '@/router'
-
 import { message } from 'ant-design-vue'
 import { useUserStore } from '@/stores/userInfo'
-
-const baseURL = import.meta.env.VITE_APP_BASE_API
-const instance = axios.create({ baseURL })
-
+import { getBaseURL } from '@/utils/config'
 
 // 获取用户存储
 const getUserStore = () => {
   return useUserStore()
 }
+
+const instance = axios.create({
+  // 使用默认值，后续更新
+  baseURL: import.meta.env.VITE_APP_BASE_API
+})
+
+// 异步获取配置的baseURL并更新
+getBaseURL().then(url => {
+  instance.defaults.baseURL = url
+})
 
 /**
  * 响应拦截器，状态码为2xx时执行成功回调，否则执行失败回调
