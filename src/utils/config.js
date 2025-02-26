@@ -1,25 +1,88 @@
 import { readTextFile, writeTextFile, exists, mkdir } from '@tauri-apps/plugin-fs';
-import { join } from '@tauri-apps/api/path';
-import { BaseDirectory } from '@tauri-apps/plugin-fs';
+import { join, resourceDir, tempDir, appLocalDataDir } from '@tauri-apps/api/path';
 
-// 配置文件将存储在AppConfig目录的config文件夹下
+// 默认API地址
+const DEFAULT_API_URL = "https://shop.caolib.ggff.net";
+
+// 获取配置文件路径
 async function getConfigFilePath() {
     try {
-        // 使用BaseDirectory.AppConfig作为基础目录，这通常是被Tauri默认允许访问的
-        const configDirPath = await join('config');
+        // 尝试使用应用资源目录
+        const appResPath = await resourceDir();
+        console.log('应用资源目录:', appResPath);
 
-        // 检查目录是否存在，不存在则创建
-        const dirExists = await exists(configDirPath, { baseDir: BaseDirectory.AppConfig });
+        // 创建配置文件路径
+        const configPath = await join(appResPath, 'config.json');
+        console.log('尝试使用配置文件路径:', configPath);
+
+        // 测试资源目录是否可写
+        try {
+            const testFilePath = await join(appResPath, 'test.tmp');
+            await writeTextFile(testFilePath, 'test');
+            console.log('资源目录可写入:', appResPath);
+
+            // 清理测试文件
+            try {
+                const { remove } = await import('@tauri-apps/plugin-fs');
+                await remove(testFilePath);
+            } catch (e) {
+                console.log('清理测试文件失败，但不影响功能:', e);
+            }
+
+            // 资源目录可写，直接使用配置文件路径
+            return configPath;
+        } catch (writeError) {
+            console.error('资源目录不可写入，尝试使用备用路径:', writeError);
+            return await getFallbackConfigPath();
+        }
+    } catch (error) {
+        console.error('获取资源目录路径失败，使用备用路径:', error);
+        return await getFallbackConfigPath();
+    }
+}
+
+// 获取备用配置文件路径
+async function getFallbackConfigPath() {
+    try {
+        // 首先尝试使用本地数据目录
+        const localDataPath = await appLocalDataDir();
+        const configDirPath = await join(localDataPath, 'config');
+
+        console.log('尝试使用备用配置目录:', configDirPath);
+
+        const dirExists = await exists(configDirPath);
         if (!dirExists) {
-            await mkdir(configDirPath, { recursive: true, baseDir: BaseDirectory.AppConfig });
-            console.log('创建配置文件夹成功');
+            await mkdir(configDirPath, { recursive: true });
+            console.log('创建备用配置目录成功:', configDirPath);
         }
 
-        // 返回配置文件完整路径
         return await join(configDirPath, 'config.json');
-    } catch (error) {
-        console.error('获取配置文件路径失败:', error);
-        throw error;
+    } catch (err) {
+        console.error('本地数据目录也失败，使用临时目录:', err);
+
+        // 如果还失败，再尝试临时目录
+        return await getTempConfigPath();
+    }
+}
+
+// 临时目录配置文件路径
+async function getTempConfigPath() {
+    try {
+        const temp = await tempDir();
+        const configDir = await join(temp, 'shop-web-admin-config');
+
+        console.log('使用临时目录作为最终备用:', configDir);
+
+        const dirExists = await exists(configDir);
+        if (!dirExists) {
+            await mkdir(configDir, { recursive: true });
+        }
+
+        return await join(configDir, 'config.json');
+    } catch (err) {
+        console.error('获取临时配置路径也失败:', err);
+        // 最后的备用选项
+        return 'config.json'; // 相对于应用当前目录
     }
 }
 
@@ -28,21 +91,31 @@ async function getConfig() {
     try {
         // 获取配置文件路径
         const configPath = await getConfigFilePath();
+        console.log('最终使用配置文件路径:', configPath);
+
         // 检查文件是否存在
-        const fileExists = await exists(configPath, { baseDir: BaseDirectory.AppConfig });
+        const fileExists = await exists(configPath);
+
         // 如果文件不存在，创建一个默认的配置文件
         if (!fileExists) {
             console.log('配置文件不存在，创建默认配置文件');
             const defaultConfig = {
-                urls: [],
-                currentUrl: ''
+                urls: [DEFAULT_API_URL],
+                currentUrl: DEFAULT_API_URL
             };
-            await writeTextFile(configPath, JSON.stringify(defaultConfig, null, 2), { baseDir: BaseDirectory.AppConfig });
-            return defaultConfig;
+            try {
+                await writeTextFile(configPath, JSON.stringify(defaultConfig, null, 2));
+                console.log('成功创建默认配置文件');
+                return defaultConfig;
+            } catch (e) {
+                console.error('创建配置文件失败:', e);
+                // 如果无法写入，返回默认配置
+                return defaultConfig;
+            }
         }
 
         // 读取配置文件
-        const content = await readTextFile(configPath, { baseDir: BaseDirectory.AppConfig });
+        const content = await readTextFile(configPath);
         const config = JSON.parse(content);
 
         // 兼容旧版本配置
@@ -58,9 +131,11 @@ async function getConfig() {
             currentUrl: config.currentUrl || ''
         };
     } catch (error) {
-        console.error('读取配置文件失败:', error);
-        // 读取失败返回默认值
-        return { urls: [], currentUrl: '' };
+        console.error('读取配置文件失败，使用默认值:', error);
+        return {
+            urls: [DEFAULT_API_URL],
+            currentUrl: DEFAULT_API_URL
+        };
     }
 }
 
@@ -68,7 +143,7 @@ async function getConfig() {
 async function saveConfig(config) {
     try {
         const configPath = await getConfigFilePath();
-        await writeTextFile(configPath, JSON.stringify(config, null, 2), { baseDir: BaseDirectory.AppConfig });
+        await writeTextFile(configPath, JSON.stringify(config, null, 2));
         console.log('配置已更新成功');
         return true;
     } catch (error) {
