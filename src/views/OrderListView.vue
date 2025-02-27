@@ -26,6 +26,17 @@ const handleOpenDetail = (orderId) => {
     openOrderDetailPanel(orderId, orderDetailData, orderDetailVisible)
 }
 
+// 处理日期范围变化
+const handleDateRangeChange = (dates) => {
+    if (dates) {
+        query.createStartTime = dates[0]
+        query.createEndTime = dates[1]
+    } else {
+        query.createStartTime = null
+        query.createEndTime = null
+    }
+}
+
 onMounted(() => {
     forbiddenScroll()
     handleSearch()
@@ -54,16 +65,13 @@ onBeforeUnmount(() => {
                         </a-select-option>
                     </a-select>
                 </a-form-item>
-                <a-form-item>
-                    <a-date-picker allowClear showTime format="YYYY-MM-DD HH:mm:ss" v-model:value="query.createTime"
-                        placeholder="订单创建时间" />
+                <a-form-item label="创建时间">
+                    <a-range-picker allowClear showTime format="YYYY-MM-DD HH:mm:ss"
+                        :value="[query.createStartTime, query.createEndTime]" @change="handleDateRangeChange"
+                        :placeholder="['开始时间', '结束时间']" style="width: 380px;" />
                 </a-form-item>
                 <a-form-item>
-                    <a-date-picker allowClear showTime format="YYYY-MM-DD HH:mm:ss" v-model:value="query.endTime"
-                        placeholder="订单结束时间" />
-                </a-form-item>
-                <a-form-item>
-                    <a-button type="primary" @click="handleSearch">查询</a-button>
+                    <a-button type="primary" @click="handleSearch(true)">查询</a-button>
                 </a-form-item>
             </a-form>
 
