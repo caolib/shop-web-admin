@@ -12,8 +12,8 @@ const query = reactive({
     pageSize: 20,
     id: null,
     status: null,
-    createTime: null,
-    endTime: null,
+    createStartTime: null,
+    createEndTime: null,
     sortField: null,
     sortOrder: null
 })
@@ -32,16 +32,28 @@ const formatDate = (date) => {
 }
 
 // 更新查询订单信息函数
-const handleSearch = async () => {
+/**
+ * 处理查询
+ * @param {boolean} resetPage 是否重置页码
+ */
+const handleSearch = async (resetPage = false) => {
+    // 如果需要重置页码，将当前页设为1
+    if (resetPage) {
+        pagination.current = 1;
+        query.pageNo = 1; // 确保查询参数中的页码也被重置
+    }
+
     loading.value = true
     // 拷贝 query并转换日期格式
     const params = { ...query };
-    if (params.createTime) {
-        params.createTime = formatDate(params.createTime);
-    }
-    if (params.endTime) {
-        params.endTime = formatDate(params.endTime);
-    }
+
+    // 日期格式化
+    ['createStartTime', 'createEndTime'].forEach(field => {
+        if (params[field]) {
+            params[field] = formatDate(params[field]);
+        }
+    });
+
     await getOrderPageService(params).then(res => {
         orders.value = res.records
         pagination.total = res.total
@@ -175,16 +187,15 @@ const detailFields = [
 ]
 
 // 根据订单ID更新数据并显示订单详情面板
-const openOrderDetailPanel = (orderId, orderDetailData, orderDetailVisible) => {
+const openOrderDetailPanel = async (orderId, orderDetailData, orderDetailVisible) => {
     const hide = message.loading('正在获取订单详情...', 0)
-    return getOrderDetailService(orderId)
-        .then(res => {
-            orderDetailData.value = res.data
-            orderDetailVisible.value = true
-        })
-        .finally(() => {
-            hide()
-        })
+    try {
+        const res = await getOrderDetailService(orderId)
+        orderDetailData.value = res.data
+        orderDetailVisible.value = true
+    } finally {
+        hide()
+    }
 }
 
 export {

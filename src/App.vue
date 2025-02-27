@@ -15,12 +15,12 @@ import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 dayjs.locale("zh-cn");
 import {
-  FileTextOutlined, HomeOutlined, LogoutOutlined, SearchOutlined, ShoppingCartOutlined, UserOutlined, CheckCircleFilled, ExclamationCircleFilled, ArrowLeftOutlined, ArrowRightOutlined, ExpandOutlined, CloseOutlined, MinusOutlined, ReloadOutlined, PayCircleOutlined, PieChartOutlined
+  SettingFilled, FileTextOutlined, HomeOutlined, LogoutOutlined, SearchOutlined, ShoppingCartOutlined, UserOutlined, CheckCircleFilled, ExclamationCircleFilled, ArrowLeftOutlined, ArrowRightOutlined, ExpandOutlined, CloseOutlined, MinusOutlined, ReloadOutlined, PayCircleOutlined, PieChartOutlined
 } from '@ant-design/icons-vue'
 import { checkSrv, getServiceStatus } from '@/api/status.js'
 import { logout } from '@/api/login.js'
 import { flushUser, isLogin, user } from '@/api/app.js'
-import { goPage } from './router/jump'
+import { goPage, jump } from './router/jump'
 
 const spinning = ref(false)
 const route = useRoute()
@@ -107,16 +107,16 @@ onMounted(() => {
           </a-breadcrumb-item>
 
           <!-- 设置 -->
-          <a-breadcrumb-item>
+          <!-- <a-breadcrumb-item>
             <router-link to="/config" :class="['route-link', { active: isActive('/config') }]">
-              设置
+              <SettingFilled />
             </router-link>
-          </a-breadcrumb-item>
+          </a-breadcrumb-item> -->
 
           <!--退出登录-->
           <a-breadcrumb-item v-if="isLogin" style="color: gray;" class="logout" @click="logout('')">
             <LogoutOutlined />
-            退出登录
+            退出
           </a-breadcrumb-item>
 
         </a-breadcrumb>
@@ -125,6 +125,8 @@ onMounted(() => {
 
       <!-- 修改窗口操作区域，使用 v-if 渲染图标 -->
       <div class="window-controls">
+        <!--设置-->
+        <a-button class="win-btn" style="color: gray;" @click="jump('/config')" :icon="h(SettingFilled)" />
         <!--服务状态-->
         <a-dropdown>
           <a-button style="color: #00b96b" class="win-btn" v-if="allServicesUp" :icon="h(CheckCircleFilled)" />

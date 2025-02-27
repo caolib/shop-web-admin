@@ -9,17 +9,16 @@ async function getConfigFilePath() {
     try {
         // 尝试使用应用资源目录
         const appResPath = await resourceDir();
-        console.log('应用资源目录:', appResPath);
 
         // 创建配置文件路径
         const configPath = await join(appResPath, 'config.json');
-        console.log('尝试使用配置文件路径:', configPath);
+        // console.log('尝试使用配置文件路径:', configPath);
 
         // 测试资源目录是否可写
         try {
             const testFilePath = await join(appResPath, 'test.tmp');
             await writeTextFile(testFilePath, 'test');
-            console.log('资源目录可写入:', appResPath);
+            // console.log('资源目录可写入:', appResPath);
 
             // 清理测试文件
             try {
@@ -48,7 +47,7 @@ async function getFallbackConfigPath() {
         const localDataPath = await appLocalDataDir();
         const configDirPath = await join(localDataPath, 'config');
 
-        console.log('尝试使用备用配置目录:', configDirPath);
+        // console.log('尝试使用备用配置目录:', configDirPath);
 
         const dirExists = await exists(configDirPath);
         if (!dirExists) {
@@ -71,7 +70,7 @@ async function getTempConfigPath() {
         const temp = await tempDir();
         const configDir = await join(temp, 'shop-web-admin-config');
 
-        console.log('使用临时目录作为最终备用:', configDir);
+        // console.log('使用临时目录作为最终备用:', configDir);
 
         const dirExists = await exists(configDir);
         if (!dirExists) {
@@ -105,7 +104,7 @@ async function getConfig() {
             };
             try {
                 await writeTextFile(configPath, JSON.stringify(defaultConfig, null, 2));
-                console.log('成功创建默认配置文件');
+                // console.log('成功创建默认配置文件');
                 return defaultConfig;
             } catch (e) {
                 console.error('创建配置文件失败:', e);
@@ -144,7 +143,7 @@ async function saveConfig(config) {
     try {
         const configPath = await getConfigFilePath();
         await writeTextFile(configPath, JSON.stringify(config, null, 2));
-        console.log('配置已更新成功');
+        // console.log('配置已更新成功');
         return true;
     } catch (error) {
         console.error('保存配置文件失败:', error);
@@ -200,9 +199,7 @@ export async function deleteUrl(url) {
         config.urls.splice(index, 1);
 
         // 如果删除的是当前选中的URL，则重置当前URL
-        if (config.currentUrl === url) {
-            config.currentUrl = config.urls.length > 0 ? config.urls[0] : '';
-        }
+        if (config.currentUrl === url) config.currentUrl = config.urls.length > 0 ? config.urls[0] : '';
 
         await saveConfig(config);
         return true;
