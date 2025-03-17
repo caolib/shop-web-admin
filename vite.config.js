@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import process from 'process'
 
 // 从环境变量中获取 TAURI_DEV_HOST，用于指定开发服务器的 host
 const host = process.env.TAURI_DEV_HOST
@@ -10,8 +11,7 @@ export default defineConfig(async () => ({
   plugins: [
     vue(),
     vueDevTools({
-      // 使用 VS Code 打开编辑器
-      launchEditor: 'code',
+      launchEditor: 'code'
     }),
   ],
   resolve: {

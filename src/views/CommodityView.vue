@@ -22,7 +22,7 @@ import { handleImageError } from '@/utils/handleImg'
 
 onMounted(() => {
   // 禁用页面滚动
-  forbiddenScroll()
+  // forbiddenScroll()
   // 根据路由中的 query 参数获取商品 ID，若存在则加载商品信息
   const id = route.query.id
   if (id) {
@@ -33,7 +33,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   // 组件卸载前恢复页面滚动
-  allowScroll()
+  // allowScroll()
 })
 </script>
 
@@ -65,8 +65,9 @@ onBeforeUnmount(() => {
               </a-select>
             </template>
             <template v-else-if="field.type === 'number'">
-              <a-input-number v-model:value="commodity[field.key]" class="field-input"
-                :disabled="field.editable === false" @blur="() => validateField(field)" />
+              <a-input-number v-if="field.editable" v-model:value="commodity[field.key]" class="field-input"
+                @blur="() => validateField(field)" />
+              <a-input v-else v-model:value="commodity[field.key]" class="field-input" :disabled="true" readonly />
             </template>
             <template v-else>
               <a-input v-model:value="commodity[field.key]" :placeholder="field.label" class="field-input"

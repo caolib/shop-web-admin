@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { freezeUserService, getUsersService, recoverUserService } from '@/api/user'
 import { message, Modal } from 'ant-design-vue'
 
@@ -6,15 +6,14 @@ import { message, Modal } from 'ant-design-vue'
 const users = ref([])
 
 // 默认查询参数
-const query = {
+const query = reactive({
     pageNo: 1,
     pageSize: 10,
     id: null,
     username: null,
     phone: null,
     status: null,
-}
-
+})
 // 初始化用户数据
 const initUsers = async () => {
     await getUsersService(query).then(res => {
