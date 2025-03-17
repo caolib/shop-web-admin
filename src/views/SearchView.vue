@@ -217,7 +217,8 @@ const toggleSort = (e) => {
     <!--商品卡片展示-->
     <a-spin :spinning="loading">
       <div class="commodity-display">
-        <a-row>
+        <a-empty v-if="commodity.length === 0" description="暂无商品" />
+        <a-row v-else>
           <a-col :span="4" v-for="item in commodity" :key="item.id">
             <a-card class="commodity-card" hoverable @click="jumpToItem(item.id)">
               <!-- 封面 -->
@@ -240,7 +241,7 @@ const toggleSort = (e) => {
                     <a-tag :color="item.status === 2 ? `red` : ``" style="margin-left: 10px;">{{statusOptions.find(s =>
                       s.value
                       === item.status)?.label
-                      }}</a-tag>
+                    }}</a-tag>
                   </div>
                 </template>
 

@@ -61,7 +61,7 @@ onMounted(() => {
                 </template>
                 <a-card-meta>
                   <template #title>
-                    <span class="price">￥{{ item.price }}</span>
+                    <span class="price">￥{{ (item.price / 100).toFixed(2) }}</span>
                   </template>
                   <template #description>
                     <span style="color: black">{{ item.name }}</span>
@@ -72,25 +72,6 @@ onMounted(() => {
           </a-row>
         </div>
       </a-spin>
-      <!-- <div class="commodity-display">
-        <a-row>
-          <a-col :span="6" v-for="item in commodity" :key="item.id">
-            <a-card class="commodity-card" hoverable @click="jumpToItem(item.id)">
-              <template #cover>
-                <img :src="item.image" alt="" @error="handleImageError" />
-              </template>
-              <a-card-meta>
-                <template #title>
-                  <span class="price">￥{{ item.price }}</span>
-                </template>
-                <template #description>
-                  <span style="color: black">{{ item.name }}</span>
-                </template>
-              </a-card-meta>
-            </a-card>
-          </a-col>
-        </a-row>
-      </div> -->
 
     </div>
 

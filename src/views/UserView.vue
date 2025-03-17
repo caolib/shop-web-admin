@@ -66,19 +66,19 @@ onMounted(async () => {
             <a-form layout="inline" style="margin-bottom: 16px;">
                 <a-form-item>
                     <!-- ID 搜索输入框 -->
-                    <a-input allowClear v-model:value="query.id" placeholder="ID搜索" />
+                    <a-input allow-clear v-model:value="query.id" placeholder="ID搜索" />
                 </a-form-item>
                 <a-form-item>
                     <!-- 用户名搜索输入框 -->
-                    <a-input allowClear v-model:value="query.username" placeholder="用户名搜索" />
+                    <a-input allow-clear v-model:value="query.username" placeholder="用户名搜索" />
                 </a-form-item>
                 <a-form-item>
                     <!-- 手机号搜索输入框 -->
-                    <a-input allowClear v-model:value="query.phone" placeholder="手机号搜索" />
+                    <a-input allow-clear v-model:value="query.phone" placeholder="手机号搜索" />
                 </a-form-item>
                 <a-form-item>
                     <!-- 状态搜索选择框 -->
-                    <a-select allowClear v-model:value="query.status" placeholder="状态搜索" style="width:120px;">
+                    <a-select allow-clear v-model:value="query.status" placeholder="状态搜索" style="width:120px;">
                         <a-select-option :value="null">全部</a-select-option>
                         <a-select-option value=1>正常</a-select-option>
                         <a-select-option value=0>冻结</a-select-option>

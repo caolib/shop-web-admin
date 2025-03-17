@@ -38,12 +38,12 @@ const handleDateRangeChange = (dates) => {
 }
 
 onMounted(() => {
-    forbiddenScroll()
+    // forbiddenScroll()
     handleSearch()
 })
 
 onBeforeUnmount(() => {
-    allowScroll()
+    // allowScroll()
 })
 </script>
 
@@ -54,10 +54,10 @@ onBeforeUnmount(() => {
             <!-- 查询条件区域 -->
             <a-form layout="inline" style="margin-bottom: 16px;min-width: 1150px;">
                 <a-form-item label="订单ID">
-                    <a-input allowClear v-model:value="query.id" placeholder="订单ID" />
+                    <a-input allow-clear v-model:value="query.id" placeholder="订单ID" />
                 </a-form-item>
                 <a-form-item label="状态">
-                    <a-select allowClear v-model:value="query.status" placeholder="订单状态" style="width:160px;">
+                    <a-select allow-clear v-model:value="query.status" placeholder="订单状态" style="width:160px;">
                         <a-select-option :value="null">全部</a-select-option>
                         <!-- 使用 v-for 渲染状态选项 -->
                         <a-select-option v-for="status in orderStatus" :key="status.value" :value="status.value">
@@ -66,7 +66,7 @@ onBeforeUnmount(() => {
                     </a-select>
                 </a-form-item>
                 <a-form-item label="创建时间">
-                    <a-range-picker allowClear showTime format="YYYY-MM-DD HH:mm:ss"
+                    <a-range-picker allow-clear showTime format="YYYY-MM-DD HH:mm:ss"
                         :value="[query.createStartTime, query.createEndTime]" @change="handleDateRangeChange"
                         :placeholder="['开始时间', '结束时间']" style="width: 380px;" />
                 </a-form-item>
