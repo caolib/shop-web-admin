@@ -31,6 +31,10 @@ const statusOptions = [
 // 查询商品信息
 const queryCommodity = async (id) => {
     await queryCommodityById(id).then((res) => {
+        // 清理 image 字段的前后空白字符
+        if (res.image && typeof res.image === 'string') {
+            res.image = res.image.trim()
+        }
         commodity.value = res
         // 保存初始状态深拷贝
         initialCommodity.value = JSON.parse(JSON.stringify(res))
@@ -121,6 +125,52 @@ const toggleAddForm = () => { showAddForm.value = !showAddForm.value }
 
 // 添加商品
 const addCommodity = async () => {
+    // 校验必填字段
+    if (!newCommodity.name || !newCommodity.category || !newCommodity.brand) {
+        message.error('商品名称、分类和品牌为必填项')
+        return
+    }
+
+    // 校验价格和库存
+    if (newCommodity.price < 0 || newCommodity.stock < 0) {
+        message.error('价格和库存不能为负数')
+        return
+    }
+
+    // 校验图片链接
+    const urlRegex = /^(https?:\/\/[^\s]+)$/i
+    if (!newCommodity.image || !urlRegex.test(newCommodity.image)) {
+        message.error('图片链接格式不合法')
+        return
+    }
+
+    // 校验规格JSON格式
+    if (newCommodity.spec) {
+        try {
+            const specObj = JSON.parse(newCommodity.spec)
+            // 检查是否为空对象
+            if (Object.keys(specObj).length === 0) {
+                message.error('规格不能为空对象')
+                return
+            }
+            // 检查是否为对象类型
+            if (typeof specObj !== 'object' || Array.isArray(specObj)) {
+                message.error('规格必须是对象格式')
+                return
+            }
+            // 检查每个规格值是否为数组
+            for (const key in specObj) {
+                if (!Array.isArray(specObj[key]) || specObj[key].length === 0) {
+                    message.error('每个规格必须是非空数组')
+                    return
+                }
+            }
+        } catch (e) {
+            message.error('规格必须是有效的JSON格式')
+            return
+        }
+    }
+
     const hide = message.loading('正在添加商品...', 0)
     await addCommodityService(newCommodity).then(() => {
         message.success('添加商品成功')
