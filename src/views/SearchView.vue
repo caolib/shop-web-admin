@@ -135,7 +135,7 @@ const toggleSort = (e) => {
       <!-- 分类 -->
       <a-row class="condition-row">
         <span>分类</span>
-        <a-input v-model:value="inputCategory" allow-clear placeholder="输入分类" @pressEnter="setBrand(inputCategory)"
+        <a-input v-model:value="inputCategory" allow-clear placeholder="输入分类" @pressEnter="setCategory(inputCategory)"
           style="width: 10vw;" />
         <div>
           <span v-for="cate in presetCategories" :key="cate" @click="setCategory(cate)" class="condition-row-item">{{
