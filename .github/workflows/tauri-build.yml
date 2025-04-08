@@ -9,6 +9,7 @@ jobs:
   publish-tauri:
     permissions:
       contents: write
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -29,22 +30,21 @@ jobs:
         run: npm install -g pnpm
 
       - name: install frontend dependencies
-        run: pnpm install # change this to npm, pnpm or bun depending on which one you use.
+        run: pnpm install
 
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces __VERSION__ with the app version.
-          releaseName: 'Release v__VERSION__'
+          tagName: v__VERSION__
+          releaseName: 'v__VERSION__'
           releaseBody: 'See the assets to download this version and install.'
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
 
-
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: artifact
-          path: src-tauri/target/release/bundle #
+          path: src-tauri/target/release/bundle
