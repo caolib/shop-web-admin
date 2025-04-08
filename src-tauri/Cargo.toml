@@ -1,6 +1,6 @@
 [package]
 name = "shop-web-admin"
-version = "0.3.8"
+version = "0.3.9"
 description = "一个基于Tauri的网上商城管理员桌面端应用"
 authors = ["caolib"]
 edition = "2021"

@@ -32,8 +32,10 @@ const checkService = (service) => {
 
 // 检查单个服务状态
 const checkSrv = async (service) => {
-  const status = await checkService(service);
-  message[status ? 'success' : 'error'](`${service} 服务${status ? '正常' : '异常'}`)
+  const response = await checkService(service);
+  const isOk = response?.code === 200;
+  message[isOk ? 'success' : 'error'](`${service} 服务${isOk ? '正常' : '异常'}`);
+  return isOk;
 }
 
 // 获取所有服务状态
