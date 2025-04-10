@@ -99,7 +99,7 @@ async function getConfig() {
     try {
         // 获取配置文件路径
         const configPath = await getConfigFilePath();
-        console.log('最终使用配置文件路径:', configPath);
+        // console.log('最终使用配置文件路径:', configPath);
 
         // 检查文件是否存在
         const fileExists = await exists(configPath);

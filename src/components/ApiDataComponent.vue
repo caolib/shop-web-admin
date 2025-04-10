@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import { getDateAfter, predictSalesWithARIMA, calculatePredictionAccuracy } from '@/scripts/statics.js'
+import { getDateAfter, predictSalesWithARIMA, calculatePredictionAccuracy } from '@/scripts/statistic.js'
 import { getCommodityService } from '@/api/commodity.js'
 import { itemStatisticService } from '@/api/statistic.js'
 // 引入 Ant Design Vue 组件
@@ -58,12 +58,12 @@ async function fetchProductList() {
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 14);
-        
+
         const response = await itemStatisticService(
             startDate.toISOString().split('T')[0],
             endDate.toISOString().split('T')[0]
         );
-        
+
         if (response && response.data) {
             const foundProducts = new Map();
             response.data.forEach(dayData => {
@@ -140,8 +140,8 @@ async function fetchProductAndCheckStock(itemId, historicalSales, retryAttempt =
 
     } catch (error) {
         const canRetry = isInitialLoad.value &&
-                         retryAttempt === 0 &&
-                         (error.response?.status === 500 || error.code === 'ERR_NETWORK');
+            retryAttempt === 0 &&
+            (error.response?.status === 500 || error.code === 'ERR_NETWORK');
 
         if (canRetry) {
             setTimeout(() => {
@@ -170,17 +170,17 @@ async function initStatistics() {
     isLoadingData.value = true;
 
     const salesMap = new Map();
-     
+
     try {
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 14);
-        
+
         const response = await itemStatisticService(
             startDate.toISOString().split('T')[0],
             endDate.toISOString().split('T')[0]
         );
-        
+
         if (response && response.data) {
             const currentDate = new Date(startDate);
             while (currentDate <= endDate) {
@@ -208,14 +208,14 @@ async function initStatistics() {
     itemDailySales.value = Array.from(salesMap.entries())
         .map(([time, num]) => ({ time, num }))
         .sort((a, b) => new Date(a.time) - new Date(b.time));
-    
+
     if (itemDailySales.value.length === 0) {
         isLoadingData.value = false;
         return;
     }
 
     const actualSales = itemDailySales.value.map(item => item.num);
-    
+
     fetchProductAndCheckStock(targetItemId.value, actualSales);
 
     await nextTick();
@@ -262,7 +262,7 @@ async function initStatistics() {
             const prediction = actualSales[i];
             const targetIndex = 7 + i;
             if (targetIndex < targetLength) {
-                 chartPredicted[targetIndex] = { value: prediction };
+                chartPredicted[targetIndex] = { value: prediction };
             }
         }
         if (historyLength >= 8 && targetLength === 15) {
@@ -307,7 +307,7 @@ async function initStatistics() {
         }
 
         chartInstance.setOption({
-            title: { 
+            title: {
                 text: titleText,
                 subtext: subText,
                 left: 'center',
@@ -320,9 +320,9 @@ async function initStatistics() {
                     color: '#666'
                 }
             },
-            tooltip: { 
+            tooltip: {
                 trigger: 'axis',
-                formatter: function(params) {
+                formatter: function (params) {
                     let result = params[0].axisValue + '<br/>';
                     params.forEach(param => {
                         result += param.seriesName + ': ' + param.value + '<br/>';
@@ -330,7 +330,7 @@ async function initStatistics() {
                     return result;
                 }
             },
-            legend: { 
+            legend: {
                 data: showPrediction ? ['实际销量', '预测销量'] : ['实际销量'],
                 top: 40
             },
@@ -366,18 +366,18 @@ async function initStatistics() {
 
 onMounted(async () => {
     await nextTick();
-    
+
     if (chartContainer.value) {
         try {
             chartInstance = echarts.init(chartContainer.value);
-            
+
             const resizeHandler = () => {
                 if (chartInstance) {
                     chartInstance.resize();
                 }
             };
             window.addEventListener('resize', resizeHandler);
-            
+
             onBeforeUnmount(() => {
                 window.removeEventListener('resize', resizeHandler);
                 if (chartInstance) {
@@ -401,59 +401,52 @@ onMounted(async () => {
         <template v-else>
             <Row :gutter="[16, 16]">
                 <Col :span="24">
-                    <Card :bodyStyle="{ padding: '24px' }">
-                        <Space style="margin-bottom: 16px; width: 100%; justify-content: space-between;">
-                            <Space>
-                                <Typography.Text>选择商品:</Typography.Text>
-                                <Select
-                                    v-model:value="targetItemId"
-                                    style="width: 300px"
-                                    @change="handleProductChange"
-                                    :options="availableProducts.map(p => ({ value: p.id, label: p.name.substring(0, 30) + (p.name.length > 30 ? '...' : '') }))"
-                                >
-                                </Select>
-                            </Space>
+                <Card :bodyStyle="{ padding: '24px' }">
+                    <Space style="margin-bottom: 16px; width: 100%; justify-content: space-between;">
+                        <Space>
+                            <Typography.Text>选择商品:</Typography.Text>
+                            <Select v-model:value="targetItemId" style="width: 300px" @change="handleProductChange"
+                                :options="availableProducts.map(p => ({ value: p.id, label: p.name.substring(0, 30) + (p.name.length > 30 ? '...' : '') }))">
+                            </Select>
                         </Space>
-                        <div class="chart-wrapper">
-                            <div ref="chartContainer" class="chart-container"></div>
-                        </div>
-                    </Card>
+                    </Space>
+                    <div class="chart-wrapper">
+                        <div ref="chartContainer" class="chart-container"></div>
+                    </div>
+                </Card>
                 </Col>
             </Row>
 
             <Row :gutter="[16, 16]" style="margin-top: 16px;">
                 <Col :span="24">
-                    <Card title="商品信息 & 库存检查" :bodyStyle="{ padding: '24px' }">
-                        <Spin :spinning="isLoadingProductInfo">
-                            <div v-if="currentProductInfo">
-                                <Descriptions bordered size="small" :column="1">
-                                    <Descriptions.Item label="名称">
-                                        <Typography.Text
-                                            :ellipsis="{ tooltip: currentProductInfo.name || 'N/A' }"
-                                            :content="currentProductInfo.name || 'N/A'"
-                                        />
-                                    </Descriptions.Item>
-                                    <Descriptions.Item label="ID">{{ currentProductInfo.id || targetItemId }}</Descriptions.Item>
-                                    <Descriptions.Item label="当前库存">{{ typeof currentProductInfo.stock === 'number' ? currentProductInfo.stock : 'N/A' }}</Descriptions.Item>
-                                </Descriptions>
-                                <Divider />
-                                <Alert
-                                    v-if="stockMessage"
-                                    :message="stockMessage"
-                                    :type="stockMessage.includes('不足') ? 'warning' : (stockMessage.includes('充足') ? 'success' : 'info')"
-                                    show-icon
-                                />
-                                <Typography.Text v-else type="secondary">
-                                    加载库存信息...
-                                </Typography.Text>
-                            </div>
-                            <div v-else style="text-align: center; padding: 20px;">
-                                <Typography.Text type="secondary">
-                                    请选择商品
-                                </Typography.Text>
-                            </div>
-                        </Spin>
-                    </Card>
+                <Card title="商品信息 & 库存检查" :bodyStyle="{ padding: '24px' }">
+                    <Spin :spinning="isLoadingProductInfo">
+                        <div v-if="currentProductInfo">
+                            <Descriptions bordered size="small" :column="1">
+                                <Descriptions.Item label="名称">
+                                    <Typography.Text :ellipsis="{ tooltip: currentProductInfo.name || 'N/A' }"
+                                        :content="currentProductInfo.name || 'N/A'" />
+                                </Descriptions.Item>
+                                <Descriptions.Item label="ID">{{ currentProductInfo.id || targetItemId }}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="当前库存">{{ typeof currentProductInfo.stock === 'number' ?
+                                    currentProductInfo.stock : 'N/A' }}</Descriptions.Item>
+                            </Descriptions>
+                            <Divider />
+                            <Alert v-if="stockMessage" :message="stockMessage"
+                                :type="stockMessage.includes('不足') ? 'warning' : (stockMessage.includes('充足') ? 'success' : 'info')"
+                                show-icon />
+                            <Typography.Text v-else type="secondary">
+                                加载库存信息...
+                            </Typography.Text>
+                        </div>
+                        <div v-else style="text-align: center; padding: 20px;">
+                            <Typography.Text type="secondary">
+                                请选择商品
+                            </Typography.Text>
+                        </div>
+                    </Spin>
+                </Card>
                 </Col>
             </Row>
         </template>
@@ -483,4 +476,4 @@ onMounted(async () => {
     width: 100%;
     height: 100%;
 }
-</style> 
+</style>

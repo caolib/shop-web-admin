@@ -39,8 +39,7 @@ export default defineConfig(async () => ({
     },
     proxy: {
       '/api': { // 匹配请求路径中含有 /api 的请求
-        // target: 'http://localhost:8080', // 后端服务地址
-        target: 'http://laptop:8080', // 后端服务地址
+        target: 'http://laptop:80', // 后端服务地址
         changeOrigin: true,
         // rewrite 会在请求中去掉 /api 前缀
         rewrite: (path) => path.replace(/^\/api/, '')

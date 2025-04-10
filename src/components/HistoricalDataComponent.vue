@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import * as echarts from 'echarts'
 import jsonData from '@/assets/data.json'
-import { getDateAfter, predictSalesWithARIMA, calculatePredictionAccuracy } from '@/scripts/statics.js'
+import { getDateAfter, predictSalesWithARIMA, calculatePredictionAccuracy } from '@/scripts/statistic.js'
 import { getCommodityService } from '@/api/commodity.js'
 // 引入 Ant Design Vue 组件
 import {
@@ -96,8 +96,8 @@ async function fetchProductAndCheckStock(itemId, historicalSales, retryAttempt =
 
     } catch (error) {
         const canRetry = isInitialLoad.value &&
-                         retryAttempt === 0 &&
-                         (error.response?.status === 500 || error.code === 'ERR_NETWORK');
+            retryAttempt === 0 &&
+            (error.response?.status === 500 || error.code === 'ERR_NETWORK');
 
         if (canRetry) {
             setTimeout(() => {
@@ -122,7 +122,7 @@ async function initStatistics() {
     populateProductNames();
 
     const salesMap = new Map();
-     
+
     if (jsonData && jsonData.data) {
         jsonData.data.forEach(dailyEntry => {
             const date = dailyEntry.date.substring(0, 10);
@@ -141,15 +141,15 @@ async function initStatistics() {
         .map(([time, num]) => ({ time, num }))
         .sort((a, b) => new Date(a.time) - new Date(b.time));
     const actualSales = itemDailySales.value.map(item => item.num);
-    
+
     fetchProductAndCheckStock(targetItemId.value, actualSales);
 
     if (!chartInstance) {
-         return;
+        return;
     }
     if (!itemDailySales.value || itemDailySales.value.length === 0) {
         chartInstance.clear();
-        chartInstance.setOption({ title: { text: `无销售数据`, left: 'center', top: 'center' }});
+        chartInstance.setOption({ title: { text: `无销售数据`, left: 'center', top: 'center' } });
         return;
     }
 
@@ -181,7 +181,7 @@ async function initStatistics() {
             const prediction = actualSales[i];
             const targetIndex = 7 + i;
             if (targetIndex < targetLength) {
-                 chartPredicted[targetIndex] = { value: prediction };
+                chartPredicted[targetIndex] = { value: prediction };
             }
         }
         if (historyLength >= 8 && targetLength === 15) {
@@ -215,7 +215,7 @@ async function initStatistics() {
     }
 
     chartInstance.setOption({
-        title: { 
+        title: {
             text: showPrediction ? '商品销量预测' : '商品销量统计',
             subtext: !showPrediction ? '历史数据不足14天，无法显示预测数据' : '',
             left: 'center',
@@ -229,7 +229,7 @@ async function initStatistics() {
             }
         },
         tooltip: { trigger: 'axis' },
-        legend: { 
+        legend: {
             data: showPrediction ? ['实际销量', '预测销量'] : ['实际销量'],
             top: 40
         },
@@ -260,19 +260,19 @@ onMounted(() => {
     if (chartContainer.value) {
         chartInstance = echarts.init(chartContainer.value);
         populateProductNames();
-        targetItemId.value = availableProducts.value.length > 0 
-            ? availableProducts.value[0].id 
+        targetItemId.value = availableProducts.value.length > 0
+            ? availableProducts.value[0].id
             : availableItemIds.value[0];
         initStatistics();
     }
-    
+
     const resizeHandler = () => {
         if (chartInstance) {
             chartInstance.resize();
         }
     };
     window.addEventListener('resize', resizeHandler);
-    
+
     onBeforeUnmount(() => {
         window.removeEventListener('resize', resizeHandler);
         if (chartInstance) {
@@ -286,59 +286,52 @@ onMounted(() => {
     <div> <!-- 最外层容器 -->
         <Row :gutter="[16, 16]"> <!-- 第一行：仅图表 -->
             <Col :span="24"> <!-- 图表列占满整行 -->
-                <Card>
-                    <Space style="margin-bottom: 16px; width: 100%; justify-content: space-between;">
-                        <Space>
-                            <Typography.Text>选择商品:</Typography.Text>
-                            <Select
-                                v-model:value="targetItemId"
-                                style="width: 300px"
-                                @change="handleProductChange"
-                                :options="availableProducts.map(p => ({ value: p.id, label: p.name.substring(0, 30) + (p.name.length > 30 ? '...' : '') }))"
-                            >
-                            </Select>
-                        </Space>
+            <Card>
+                <Space style="margin-bottom: 16px; width: 100%; justify-content: space-between;">
+                    <Space>
+                        <Typography.Text>选择商品:</Typography.Text>
+                        <Select v-model:value="targetItemId" style="width: 300px" @change="handleProductChange"
+                            :options="availableProducts.map(p => ({ value: p.id, label: p.name.substring(0, 30) + (p.name.length > 30 ? '...' : '') }))">
+                        </Select>
                     </Space>
-                    <!-- 图表容器 -->
-                    <div ref="chartContainer" style="width: 100%; height: 400px;"></div>
-                </Card>
+                </Space>
+                <!-- 图表容器 -->
+                <div ref="chartContainer" style="width: 100%; height: 400px;"></div>
+            </Card>
             </Col>
         </Row>
 
         <Row :gutter="[16, 16]" style="margin-top: 16px;"> <!-- 第二行：仅信息面板 -->
-             <Col :span="24"> <!-- 信息面板列占满整行 -->
-                <Card title="商品信息 & 库存检查">
-                    <Spin :spinning="isLoadingProductInfo">
-                        <div v-if="currentProductInfo">
-                            <Descriptions bordered size="small" :column="1">
-                                <Descriptions.Item label="名称">
-                                    <Typography.Text
-                                        :ellipsis="{ tooltip: currentProductInfo.name || 'N/A' }"
-                                        :content="currentProductInfo.name || 'N/A'"
-                                    />
-                                </Descriptions.Item>
-                                <Descriptions.Item label="ID">{{ currentProductInfo.id || targetItemId }}</Descriptions.Item>
-                                <Descriptions.Item label="当前库存">{{ typeof currentProductInfo.stock === 'number' ? currentProductInfo.stock : 'N/A' }}</Descriptions.Item>
-                            </Descriptions>
-                            <Divider />
-                            <Alert
-                                v-if="stockMessage"
-                                :message="stockMessage"
-                                :type="stockMessage.includes('不足') ? 'warning' : (stockMessage.includes('充足') ? 'success' : 'info')"
-                                show-icon
-                            />
-                             <Typography.Text v-else type="secondary">
-                                加载库存信息...
-                            </Typography.Text>
-                        </div>
-                         <div v-else style="text-align: center; padding: 20px;">
-                             <Typography.Text type="secondary">
-                                请选择商品
-                             </Typography.Text>
-                         </div>
-                    </Spin>
-                </Card>
+            <Col :span="24"> <!-- 信息面板列占满整行 -->
+            <Card title="商品信息 & 库存检查">
+                <Spin :spinning="isLoadingProductInfo">
+                    <div v-if="currentProductInfo">
+                        <Descriptions bordered size="small" :column="1">
+                            <Descriptions.Item label="名称">
+                                <Typography.Text :ellipsis="{ tooltip: currentProductInfo.name || 'N/A' }"
+                                    :content="currentProductInfo.name || 'N/A'" />
+                            </Descriptions.Item>
+                            <Descriptions.Item label="ID">{{ currentProductInfo.id || targetItemId }}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="当前库存">{{ typeof currentProductInfo.stock === 'number' ?
+                                currentProductInfo.stock : 'N/A' }}</Descriptions.Item>
+                        </Descriptions>
+                        <Divider />
+                        <Alert v-if="stockMessage" :message="stockMessage"
+                            :type="stockMessage.includes('不足') ? 'warning' : (stockMessage.includes('充足') ? 'success' : 'info')"
+                            show-icon />
+                        <Typography.Text v-else type="secondary">
+                            加载库存信息...
+                        </Typography.Text>
+                    </div>
+                    <div v-else style="text-align: center; padding: 20px;">
+                        <Typography.Text type="secondary">
+                            请选择商品
+                        </Typography.Text>
+                    </div>
+                </Spin>
+            </Card>
             </Col>
         </Row>
     </div>
-</template> 
+</template>
