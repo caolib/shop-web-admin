@@ -1,374 +1,248 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import * as echarts from 'echarts'
-import jsonData from '@/assets/data.json'
-import { getDateAfter, predictSalesWithARIMA, calculatePredictionAccuracy } from '@/scripts/statics.js' // 导入工具函数
-import { getCommodityService } from '@/api/commodity.js' // 导入 API 服务
-import { itemStatisticService } from '@/api/statistic.js'
-// 引入 Ant Design Vue 组件
+import {
+    getDateAfter,
+    createActualSalesSeries,
+    createPredictedSalesSeries,
+    getStatisticsData,
+    getSalesPrediction
+} from '@/scripts/statistic.js'
+import { getCommodityService } from '@/api/commodity.js'
 import {
     Row, Col, Select, Space, Card, Descriptions,
-    DescriptionsItem, Spin, Divider, Typography, Alert, Switch, Tabs
+    DescriptionsItem, Spin, Alert, Button
 } from 'ant-design-vue';
-import HistoricalDataComponent from '@/components/HistoricalDataComponent.vue'
-import ApiDataComponent from '@/components/ApiDataComponent.vue'
 
 const chartContainer = ref(null)
-const itemDailySales = ref([]) // 存储处理后的单个商品日销量 { time: 'YYYY-MM-DD', num: N }
-const availableItemIds = ref(['1861100', '317580', '317578']) // 默认商品ID列表
-const availableProducts = ref([]) // 存储商品列表 { id: '...', name: '...' }，用于选择器
-const targetItemId = ref('') // 当前选中的商品ID
-let chartInstance = null; // ECharts 实例
+const availableProducts = ref([])
+const targetItemId = ref('')
+const allSalesData = ref(null);
+let chartInstance = null;
 
-// 商品信息和库存检查的状态
-const currentProductInfo = ref(null) // 当前商品信息
-const stockMessage = ref('') // 库存检查消息
-const isLoadingProductInfo = ref(false) // 是否正在加载商品信息
-const isInitialLoad = ref(true) // 标记是否为初始加载
+const isLoadingList = ref(true);
+const isLoadingPrediction = ref(false);
+const currentProductInfo = ref(null)
+const stockMessage = ref('')
+const isLoadingProductInfo = ref(false)
 
-const isUsingTestData = ref(true) // 控制数据源
-const isLoadingData = ref(false) // 控制数据加载状态
+const predictionStatusMessage = ref('');
+const isRealTime = ref(false);
 
-const activeKey = ref('historical') // 默认显示历史数据标签页
-const apiTabActive = ref(false) // API标签页激活状态
+const buttonText = computed(() => {
+    return isRealTime.value ? '切换到历史数据' : '切换到实时数据';
+});
 
 /**
- * 根据 data.json 填充 availableProducts 数组，包含商品 ID 和名称。
- * 只在首次加载或数据为空时执行。
+ * 处理商品选择变化
  */
-function populateProductNames() {
-    if (availableProducts.value.length > 0 || !jsonData || !jsonData.data) {
-        return;
-    }
-    const foundProducts = new Map();
-    jsonData.data.forEach(dailyEntry => {
-        if (dailyEntry.payDetailList) {
-            dailyEntry.payDetailList.forEach(item => {
-                if (availableItemIds.value.includes(item.itemId) && !foundProducts.has(item.itemId)) {
-                    foundProducts.set(item.itemId, item.name || '未知商品');
-                }
-            });
-        }
-    });
-    availableProducts.value = availableItemIds.value.map(id => ({
-        id: id,
-        name: foundProducts.get(id) || `商品 ${id}`
-    }));
-    console.log('可用商品列表（含名称）:', availableProducts.value);
+async function handleProductChange(newValue) {
+    targetItemId.value = newValue;
+    await initStatistics();
 }
 
 /**
- * 处理商品选择器变化事件。
+ * 获取商品详情预测并进行库存检查
  */
-function handleProductChange() {
-    console.log('选择的商品 ID:', targetItemId.value)
-    initStatistics() // 重新初始化所有内容，包括获取新的商品信息
-}
-
-/**
- * 获取商品详情并基于未来7天预测进行库存检查。
- * @param {string} itemId 商品ID
- * @param {Array<number>} historicalSales 历史销量数组
- * @param {number} [retryAttempt=0] 重试次数
- */
-async function fetchProductAndCheckStock(itemId, historicalSales, retryAttempt = 0) {
+async function fetchProductAndCheckStock(itemId, predictions7DayFuture) {
     isLoadingProductInfo.value = true;
-    // 初始加载或重试时显示默认消息
-    if (retryAttempt === 0) {
-        stockMessage.value = '正在检查库存...';
-        currentProductInfo.value = null;
-    }
+    stockMessage.value = '正在检查库存...';
+    currentProductInfo.value = null;
 
     try {
-        // 1. 获取商品信息（包括库存）
-        const res = await getCommodityService(itemId);
-        currentProductInfo.value = res;
-        console.log('获取到的商品信息:', currentProductInfo.value);
+        const productInfo = await getCommodityService(itemId);
+        currentProductInfo.value = productInfo;
 
-        // --- 成功获取后，进行后续处理 ---
+        const currentStockValue = Number(productInfo.stock);
 
-        // 2. 预测未来7天销量（需要至少14天历史数据）
-        const historyLength = historicalSales.length;
-        if (historyLength >= 14) {
-            let totalPredictedSales = 0;
-            console.log('预测未来7天销量 (第15-21天):');
-            for (let i = 0; i < 7; i++) {
-                const prediction = historicalSales[7 + i];
-                totalPredictedSales += prediction;
-                 console.log(`  第 ${15 + i} 天预测: ${prediction} (来自第 ${8 + i} 天)`);
-            }
-            console.log('未来7天预计总销量:', totalPredictedSales);
-
-            // 3. 对比库存与预测值
-            if (currentProductInfo.value && typeof currentProductInfo.value.stock === 'number') {
-                if (currentProductInfo.value.stock >= totalPredictedSales) {
-                    stockMessage.value = `库存充足 (当前: ${currentProductInfo.value.stock}, 预计消耗: ${totalPredictedSales})`;
-                } else {
-                    stockMessage.value = `库存可能不足! (当前: ${currentProductInfo.value.stock}, 预计消耗: ${totalPredictedSales})`;
-                }
+        if (predictions7DayFuture) {
+            const totalPredictedSales = predictions7DayFuture.reduce((sum, val) => sum + val, 0);
+            if (currentStockValue >= totalPredictedSales) {
+                stockMessage.value = `库存充足 (当前: ${currentStockValue}, 预测销量: ${totalPredictedSales.toFixed(0)})`;
             } else {
-                stockMessage.value = '无法获取当前库存信息。';
+                stockMessage.value = `库存可能不足! (当前: ${currentStockValue}, 预测销量: ${totalPredictedSales.toFixed(0)})`;
             }
         } else {
-            stockMessage.value = `历史数据不足 (${historyLength}天)，无法预测未来7天库存。`;
-            console.warn(`历史数据不足 (${historyLength} 天)，无法预测未来7天。`);
+            stockMessage.value = `当前库存: ${currentStockValue} (无足够历史数据进行消耗预测)`;
         }
-
-        // 成功完成（无论是首次还是重试），标记初始加载结束
-        isInitialLoad.value = false;
-
     } catch (error) {
-        console.error('获取商品信息或检查库存时出错:', error);
-
-        // --- 重试逻辑 ---
-        // 只在初始加载、首次尝试失败、且错误可能是临时性问题（如500或网络错误）时重试
-        const canRetry = isInitialLoad.value && retryAttempt === 0 && (error.response?.status === 500 || error.code === 'ERR_NETWORK'); // 可根据需要调整错误判断
-
-        if (canRetry) {
-            console.warn('初始加载商品信息失败，将在 1 秒后重试...');
-            setTimeout(() => {
-                fetchProductAndCheckStock(itemId, historicalSales, 1); // 传递重试次数 1
-            }, 1000); // 延迟 1 秒重试
-            // 注意：这里不设置 isLoadingProductInfo=false，让它在重试期间保持 true
-            return; // 阻止执行 finally 和后续错误处理
-        }
-        // --- 重试逻辑结束 ---
-
-        // 重试失败或非初始加载失败，显示最终错误信息
-        stockMessage.value = '检查库存时出错。请稍后重试或联系管理员。';
-        currentProductInfo.value = { name: '加载失败', stock: 'N/A' };
-        isInitialLoad.value = false; // 标记初始加载处理结束（即使是失败了）
-
+        console.error("(View) 获取商品详情或处理库存时出错:", error); // Keep error logs
+        stockMessage.value = "获取库存信息失败";
     } finally {
-        // 仅在非重试调用或重试最终完成后设置 false
-        // 为了简化，这里总是设置 false，允许重试期间短暂变回 true
         isLoadingProductInfo.value = false;
     }
 }
 
 /**
- * 从API响应中提取商品列表
+ * 切换数据源
  */
-async function extractProductsFromApi() {
-    try {
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 14);
-        
-        const response = await itemStatisticService(
-            startDate.toISOString().split('T')[0],
-            endDate.toISOString().split('T')[0]
-        );
-        
-        if (response && response.data) {
-            const foundProducts = new Map();
-            response.data.forEach(dayData => {
-                if (dayData.payDetailList) {
-                    dayData.payDetailList.forEach(item => {
-                        if (!foundProducts.has(item.itemId)) {
-                            foundProducts.set(item.itemId, {
-                                id: item.itemId,
-                                name: item.name || `商品 ${item.itemId}`
-                            });
-                        }
-                    });
-                }
-            });
-            availableProducts.value = Array.from(foundProducts.values());
-            if (availableProducts.value.length > 0) {
-                targetItemId.value = availableProducts.value[0].id;
-            }
-            console.log('从API获取的商品列表:', availableProducts.value);
-        }
-    } catch (error) {
-        console.error('获取商品列表失败:', error);
-    }
-}
-
-// 修改数据源切换处理函数
-const handleDataSourceChange = async (checked) => {
-    isUsingTestData.value = checked;
-    isLoadingData.value = true;
-    try {
-        if (!checked) {
-            // 切换到API数据时，先获取商品列表
-            await extractProductsFromApi();
-        } else {
-            // 切换回历史数据时，使用默认商品列表
-            availableProducts.value = availableItemIds.value.map(id => ({
-                id: id,
-                name: `商品 ${id}`
-            }));
-            targetItemId.value = availableItemIds.value[0];
-        }
+const toggleDataSource = async () => {
+    isRealTime.value = !isRealTime.value;
+    await loadInitialData();
+    if (targetItemId.value) {
         await initStatistics();
+    } else {
+        if (chartInstance) {
+            chartInstance.clear();
+            chartInstance.setOption({ title: { text: '请选择一个商品', left: 'center', top: 'center' } });
+        }
+    }
+};
+
+/**
+ * 加载初始数据 (商品列表和历史数据) - Uses getStatisticsData
+ */
+async function loadInitialData() {
+    isLoadingList.value = true;
+    availableProducts.value = [];
+    targetItemId.value = '';
+    allSalesData.value = null;
+
+    try {
+        const { allSalesData: fetchedData, products: fetchedProducts } = await getStatisticsData(isRealTime.value);
+
+        allSalesData.value = fetchedData;
+        availableProducts.value = fetchedProducts;
+
+        if (availableProducts.value.length > 0) {
+            targetItemId.value = availableProducts.value[0].id;
+        } else {
+            targetItemId.value = '';
+        }
+
+    } catch (error) {
+        console.error("(View) 加载初始数据失败:", error.message || error); // Keep error logs
+        availableProducts.value = [];
+        targetItemId.value = '';
+        allSalesData.value = [];
+        predictionStatusMessage.value = "加载基础销售数据失败，请稍后重试";
     } finally {
-        isLoadingData.value = false;
+        isLoadingList.value = false;
     }
 }
 
 /**
- * 初始化或更新 ECharts 图表，并触发库存检查。
+ * 初始化或更新 ECharts 图表 (基于历史数据) - Uses getSalesPrediction
  */
 async function initStatistics() {
-    populateProductNames();
-
-    // --- 1. 处理销售数据 ---
-    const salesMap = new Map();
-    
-    if (isUsingTestData.value) {
-        // 使用历史数据
-    if (jsonData && jsonData.data) {
-        jsonData.data.forEach(dailyEntry => {
-            const date = dailyEntry.date.substring(0, 10);
-            if (dailyEntry.payDetailList) {
-                dailyEntry.payDetailList.forEach(item => {
-                    if (item.itemId === targetItemId.value) {
-                        const currentSales = salesMap.get(date) || 0;
-                        salesMap.set(date, currentSales + Number(item.num));
-                    }
-                });
-            }
-        });
-    }
-    } else {
-        // 使用 API 数据
-        try {
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(startDate.getDate() - 14); // 获取最近14天的数据
-            
-            const response = await itemStatisticService(
-                startDate.toISOString().split('T')[0],
-                endDate.toISOString().split('T')[0]
-            );
-            
-            if (response && response.data) {
-                response.data.forEach(dayData => {
-                    if (dayData.payDetailList) {
-                        dayData.payDetailList.forEach(item => {
-                            if (item.itemId === targetItemId.value) {
-                                const date = dayData.date.substring(0, 10);
-                                const currentSales = salesMap.get(date) || 0;
-                                salesMap.set(date, currentSales + Number(item.num));
-                            }
-                        });
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('获取API数据失败:', error);
+    if (!chartInstance || !targetItemId.value || !Array.isArray(allSalesData.value)) {
+        if (chartInstance) {
+            chartInstance.clear();
+            chartInstance.setOption({ title: { text: '数据无效或未选择商品', left: 'center', top: 'center' } });
         }
-    }
-
-    itemDailySales.value = Array.from(salesMap.entries())
-        .map(([time, num]) => ({ time, num }))
-        .sort((a, b) => new Date(a.time) - new Date(b.time));
-    const actualSales = itemDailySales.value.map(item => item.num); // 获取实际销量数组
-    console.log(`处理后的商品 ${targetItemId.value} 销量:`, itemDailySales.value);
-    // --- 数据处理结束 ---
-
-    // --- 触发商品信息获取和库存检查 (使用处理好的 actualSales) ---
-    // 在处理完销售数据后运行，但它是异步执行的
-    fetchProductAndCheckStock(targetItemId.value, actualSales);
-
-    // --- 图表渲染逻辑 (只处理历史和最多未来一天的预测) ---
-    if (!chartInstance) {
-         console.error("图表实例尚未初始化。");
-         return; // 如果图表未准备好，则不继续
-    }
-    if (!itemDailySales.value || itemDailySales.value.length === 0) {
-        console.warn(`商品 ${targetItemId.value} 无销售数据(图表)。`);
-        chartInstance.clear();
-        chartInstance.setOption({ title: { text: `无销售数据`, left: 'center', top: 'center' }});
         return;
     }
 
-    const allRawDates = itemDailySales.value.map(item => item.time);
+    isLoadingPrediction.value = false;
+    predictionStatusMessage.value = '';
+    stockMessage.value = '';
+    currentProductInfo.value = null;
+
+    const salesMap = new Map();
+    allSalesData.value.forEach(dailyEntry => {
+        if (!dailyEntry || !dailyEntry.date || typeof dailyEntry.date !== 'string') return;
+        const date = dailyEntry.date.substring(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+        if (!salesMap.has(date)) { salesMap.set(date, 0); }
+        if (Array.isArray(dailyEntry.payDetailList)) {
+            dailyEntry.payDetailList.forEach(item => {
+                if (item && item.itemId === targetItemId.value) {
+                    const currentSales = salesMap.get(date) || 0;
+                    salesMap.set(date, currentSales + (Number(item.num) || 0));
+                }
+            });
+        }
+    });
+
+    const itemDailySalesResult = Array.from(salesMap.entries())
+        .map(([time, num]) => ({ time, num }))
+        .sort((a, b) => new Date(a.time) - new Date(b.time));
+    const actualSales = itemDailySalesResult.map(item => item.num);
+    const allRawDates = itemDailySalesResult.map(item => item.time);
     const historyLength = actualSales.length;
 
-    let chartDates = [...allRawDates];
-    let targetLength = historyLength;
-    let dateDay15 = null;
-    let showPrediction = false;
+    const daysToPredictFuture = 7;
+    let future7DayPredictions = null;
+    let isPredictionSuccessful = false;
+    const minHistoryForApi = 14;
 
-    if (historyLength >= 14) { // 只有历史满14天才添加第15天和显示预测
-        dateDay15 = getDateAfter(allRawDates[historyLength - 1], 1);
-        chartDates.push(dateDay15);
-        targetLength = 15;
-        showPrediction = true;
-    }
-
-    // 初始化数据数组，长度为 targetLength
-    let chartActual = Array(targetLength).fill(null);
-    let chartPredicted = Array(targetLength).fill(null);
-
-    // 填充实际销量
-    for (let i = 0; i < historyLength; i++) {
-        chartActual[i] = actualSales[i];
-    }
-
-    // 只在数据充足时填充预测销量
-    if (showPrediction && historyLength >= 7) {
-        // 预测第二周 (索引 7 到 13)
-        const predictLengthWeek2 = Math.min(7, historyLength - 7);
-        for (let i = 0; i < predictLengthWeek2; i++) {
-            const prediction = actualSales[i]; // 第 7+i 天的预测 = 第 i 天的实际
-            const targetIndex = 7 + i;
-            if (targetIndex < targetLength) {
-                 chartPredicted[targetIndex] = { value: prediction };
+    if (historyLength >= minHistoryForApi) {
+        isLoadingPrediction.value = true;
+        predictionStatusMessage.value = '正在获取预测数据...';
+        try {
+            future7DayPredictions = await getSalesPrediction(actualSales, daysToPredictFuture);
+            if (future7DayPredictions !== null) {
+                isPredictionSuccessful = true;
+                predictionStatusMessage.value = '';
+            } else {
+                console.error("(View) 获取预测数据失败 (可能 API 错误或网络问题)."); // Keep error log
+                predictionStatusMessage.value = '获取预测数据失败';
+                isPredictionSuccessful = false;
             }
+        } catch (error) {
+            console.error("(View) 调用预测功能时发生意外错误:", error); // Keep error log
+            predictionStatusMessage.value = '预测功能内部出错';
+            isPredictionSuccessful = false;
+        } finally {
+            isLoadingPrediction.value = false;
         }
-        // 预测第 15 天 (索引 14)，如果图表包含第15天
-        if (historyLength >= 8 && targetLength === 15) {
-            const predictionDay15 = actualSales[7]; // 第 15 天的预测 = 第 8 天的实际
-            chartPredicted[14] = { value: predictionDay15 };
-        }
+    } else {
+        predictionStatusMessage.value = `历史数据天数 (${historyLength}) 不足 ${minHistoryForApi} 天，无法进行预测`;
+        isPredictionSuccessful = false;
     }
 
-    // --- 设置 ECharts 图表选项 ---
-    const series = [
-        {
-            name: '实际销量',
-            type: 'line',
-            smooth: true,
-            data: chartActual,
-            lineStyle: { opacity: 0.7 }
-        }
-    ];
+    await fetchProductAndCheckStock(targetItemId.value, isPredictionSuccessful ? future7DayPredictions : null);
 
-    // 只在有预测数据时添加预测系列
-    if (showPrediction) {
-        series.push({
-            name: '预测销量',
-            type: 'line',
-            smooth: true,
-            color: 'orange',
-            symbol: 'circle',
-            symbolSize: 6,
-            data: chartPredicted,
-            lineStyle: { type: 'dashed', opacity: 0.7 },
-            z: 10
-        });
+    let chartDates = [...allRawDates];
+    let chartActual = [...actualSales];
+    let chartPredicted = Array(historyLength).fill(null);
+    const predictionLegendName = "API 预测";
+    if (isPredictionSuccessful && future7DayPredictions) {
+        let lastHistoricalDate = allRawDates.length > 0 ? allRawDates[historyLength - 1] : new Date().toISOString().substring(0, 10);
+        for (let i = 1; i <= daysToPredictFuture; i++) {
+            chartDates.push(getDateAfter(lastHistoricalDate, i));
+        }
+        chartActual = chartActual.concat(Array(daysToPredictFuture).fill(null));
+        future7DayPredictions.forEach(pred => chartPredicted.push({ value: pred }));
     }
 
-    chartInstance.setOption({
-        title: { 
-            text: showPrediction ? '商品销量预测' : '商品销量统计',
-            subtext: !showPrediction ? '历史数据不足14天，无法显示预测数据' : '',
+    const series = [createActualSalesSeries(chartActual)];
+    if (isPredictionSuccessful) {
+        series.push(createPredictedSalesSeries(chartPredicted, predictionLegendName));
+    }
+
+    const chartTitleText = isPredictionSuccessful ? '历史销量与 API 预测' : '历史销量统计';
+    const legendData = isPredictionSuccessful ? ['实际销量', predictionLegendName] : ['实际销量'];
+
+    const options = {
+        title: {
+            text: chartTitleText,
+            subtext: predictionStatusMessage.value,
             left: 'center',
             top: 10,
-            textStyle: {
-                fontSize: 16
-            },
+            textStyle: { fontSize: 16 },
             subtextStyle: {
                 fontSize: 12,
-                color: '#666'
+                color: isPredictionSuccessful ? '#666' : (predictionStatusMessage.value.includes('失败') || predictionStatusMessage.value.includes('出错') || predictionStatusMessage.value.includes('不足') ? 'red' : '#999')
             }
         },
-        tooltip: { trigger: 'axis' },
-        legend: { 
-            data: showPrediction ? ['实际销量', '预测销量'] : ['实际销量'],
+        tooltip: {
+            trigger: 'axis',
+            formatter: function (params) {
+                if (!params || params.length === 0 || !params[0].name) return;
+                let res = params[0].name + '<br/>';
+                params.forEach(item => {
+                    const point = item.value;
+                    const valueToShow = (point !== null && typeof point === 'object' && point.value !== undefined) ? point.value : point;
+                    if (valueToShow !== null && valueToShow !== undefined) {
+                        res += item.marker + item.seriesName + ': ' + parseFloat(valueToShow).toFixed(0) + '<br/>';
+                    }
+                });
+                return res;
+            }
+        },
+        legend: {
+            data: legendData,
             top: 40
         },
         grid: {
@@ -391,70 +265,74 @@ async function initStatistics() {
             nameGap: 40
         },
         series: series
-    }, true); // true 清除旧配置
+    };
+    chartInstance.setOption(options, true);
 }
 
-// --- 生命周期钩子 ---
-onMounted(() => {
-    if (chartContainer.value) {
-        chartInstance = echarts.init(chartContainer.value);
-        // 初始使用历史数据
-        availableProducts.value = availableItemIds.value.map(id => ({
-            id: id,
-            name: `商品 ${id}`
-        }));
-        targetItemId.value = availableItemIds.value[0];
-        initStatistics();
-    } else {
-        console.error("无法找到图表容器元素。");
-    }
-    // 添加窗口大小调整监听器
+onMounted(async () => {
     const resizeHandler = () => {
         if (chartInstance) {
             chartInstance.resize();
         }
     };
     window.addEventListener('resize', resizeHandler);
-    // 在卸载前移除监听器
     onBeforeUnmount(() => {
         window.removeEventListener('resize', resizeHandler);
-        if (chartInstance) {
+        if (chartInstance && !chartInstance.isDisposed()) {
             echarts.dispose(chartInstance);
         }
     });
-})
 
-// 监听标签页切换
-watch(activeKey, (newValue) => {
-    apiTabActive.value = newValue === 'api'
-    console.log('标签页切换:', newValue, 'API标签页激活:', apiTabActive.value)
-    if (newValue === 'api') {
-        nextTick(() => {
-            if (chartInstance) {
-                chartInstance.resize();
-            }
+    chartInstance = echarts.init(chartContainer.value);
+
+    await loadInitialData();
+
+    if (targetItemId.value) {
+        await initStatistics();
+    } else {
+        chartInstance.setOption({
+            title: { text: '请先添加商品或检查历史数据', left: 'center', top: 'center' }
         });
     }
 })
-
-function handleResize() {
-    if (chartInstance) {
-        chartInstance.resize();
-    }
-}
 </script>
 
 <template>
     <div class="statistics-view">
         <Card :bodyStyle="{ padding: '24px' }">
-            <Tabs v-model:activeKey="activeKey">
-                <Tabs.TabPane key="historical" tab="历史数据">
-                    <HistoricalDataComponent />
-                </Tabs.TabPane>
-                <Tabs.TabPane key="api" tab="API数据">
-                    <ApiDataComponent :isActive="activeKey === 'api'" />
-                </Tabs.TabPane>
-            </Tabs>
+            <Row :gutter="16" style="margin-bottom: 16px;" justify="start">
+                <Col>
+                <Space>
+                    <span>选择商品:</span>
+                    <Select v-model="targetItemId" style="width: 500px" placeholder="选择商品" @change="handleProductChange"
+                        :loading="isLoadingList">
+                        <Select.Option v-for="product in availableProducts" :key="product.id" :value="product.id">
+                            {{ product.name }} ({{ product.id }})
+                        </Select.Option>
+                    </Select>
+                    <Button @click="toggleDataSource">{{ buttonText }}</Button>
+                </Space>
+                </Col>
+            </Row>
+
+            <Spin :spinning="isLoadingProductInfo || isLoadingPrediction" style="margin-bottom: 16px;">
+                <Card size="small" :bordered="false">
+                    <Descriptions bordered size="small">
+                        <DescriptionsItem label="库存预警">
+                            <Alert v-if="stockMessage" :message="stockMessage"
+                                :type="stockMessage.includes('不足') ? 'warning' : (stockMessage.includes('失败') || stockMessage.includes('错误') ? 'error' : 'success')"
+                                showIcon />
+                            <span v-else>-</span>
+                        </DescriptionsItem>
+                        <DescriptionsItem label="预测状态" v-if="predictionStatusMessage">
+                            <Spin :spinning="isLoadingPrediction" size="small">{{ predictionStatusMessage }}</Spin>
+                        </DescriptionsItem>
+                    </Descriptions>
+                </Card>
+            </Spin>
+
+            <div ref="chartContainer" style="width: 100%; height: 400px;"></div>
+
         </Card>
     </div>
 </template>
@@ -464,5 +342,13 @@ function handleResize() {
     width: 100%;
     height: 100%;
     padding: 24px;
+}
+
+.ant-spin-container {
+    transition: opacity 0.3s;
+}
+
+.ant-spin-blur {
+    opacity: 0.5;
 }
 </style>

@@ -15,7 +15,15 @@ const itemStatisticService = (durationStart, durationEnd) => {
 }
 
 
+/**
+ * 获取支付历史记录
+ */
+const payHistoryService = () => {
+    return request.get('/pays/manage/history')
+}
+
 export {
     weekStatisticService,
-    itemStatisticService
+    itemStatisticService,
+    payHistoryService
 }
