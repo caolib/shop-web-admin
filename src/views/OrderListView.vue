@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, h } from 'vue'
 import { onBeforeUnmount, onMounted } from 'vue'
+import { SearchOutlined } from '@ant-design/icons-vue'
 import {
     loading,
     orders,
@@ -49,7 +50,6 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="order-list-view">
-        <h2>订单管理</h2>
         <a-card class="order-list-card">
             <!-- 查询条件区域 -->
             <a-form layout="inline" style="margin-bottom: 16px;min-width: 1150px;">
@@ -57,7 +57,8 @@ onBeforeUnmount(() => {
                     <a-input allow-clear v-model:value="query.id" placeholder="订单ID" />
                 </a-form-item>
                 <a-form-item label="状态">
-                    <a-select allow-clear v-model:value="query.status" placeholder="订单状态" style="width:160px;">
+                    <a-select allow-clear v-model:value="query.status" placeholder="订单状态" style="width:100px;"
+                        @change="handleSearch(true)">
                         <a-select-option :value="null">全部</a-select-option>
                         <!-- 使用 v-for 渲染状态选项 -->
                         <a-select-option v-for="status in orderStatus" :key="status.value" :value="status.value">
@@ -71,7 +72,7 @@ onBeforeUnmount(() => {
                         :placeholder="['开始时间', '结束时间']" style="width: 380px;" />
                 </a-form-item>
                 <a-form-item>
-                    <a-button type="primary" @click="handleSearch(true)">查询</a-button>
+                    <a-button type="primary" @click="handleSearch(true)" :icon="h(SearchOutlined)"></a-button>
                 </a-form-item>
             </a-form>
 
@@ -84,7 +85,7 @@ onBeforeUnmount(() => {
                         :dataIndex="col.dataIndex" :width="col.width" :sorter="col.sorter">
                         <template #default="{ text }">
                             <template v-if="col.dataIndex === 'status'">
-                                <a-tag>{{ renderColumn(col, text) }}</a-tag>
+                                <a-tag :color="col.color">{{ renderColumn(col, text) }}</a-tag>
                             </template>
                             <template v-else>
                                 <span>{{ renderColumn(col, text) }}</span>
@@ -109,6 +110,7 @@ onBeforeUnmount(() => {
         <a-modal v-model:open="orderDetailVisible" title="订单详情" width="100%"
             :body-style="{ height: 'auto', overflow: 'auto' }">
             <template #default>
+                <!-- 基本信息 -->
                 <a-descriptions v-if="orderDetailData" title="基本信息" :column="3" bordered>
                     <a-descriptions-item v-for="field in detailFields" :key="field.key" :label="field.label">
                         {{ field.format ? field.format(orderDetailData[field.key]) : (orderDetailData[field.key] ||

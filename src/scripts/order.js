@@ -111,27 +111,20 @@ const handleDelete = async (orderId) => {
 // 提取订单状态数组
 const orderStatus = [
     { value: 1, label: '未付款' },
-    { value: 2, label: '已付款,未发货' },
-    { value: 3, label: '已发货,未确认' },
-    { value: 4, label: '确认收货，交易成功' },
-    { value: 5, label: '交易取消，订单关闭' },
-    { value: 6, label: '交易结束，已评价' }
+    { value: 4, label: '交易成功' },
+    { value: 5, label: '订单取消' },
 ]
 
 // 表格列配置，增加 width 属性自定义列宽，以及 sorter 属性
 const columns = [
-    { title: '订单ID', dataIndex: 'id', width: 200, sorter: localSort('id') },
-    { title: '用户ID', dataIndex: 'userId', width: 100, sorter: localSort('userId') },
+    { title: '订单ID', dataIndex: 'id', width: 180, sorter: localSort('id') },
+    { title: '用户ID', dataIndex: 'userId', width: 80, sorter: localSort('userId') },
     {
-        title: '创建时间', dataIndex: 'createTime', width: 200, sorter: localSort('createTime'),
+        title: '创建时间', dataIndex: 'createTime', width: 180, sorter: localSort('createTime'),
         customRender: text => new Date(text).toLocaleString()
     },
     {
-        title: '更新时间', dataIndex: 'updateTime', width: 200, sorter: localSort('updateTime'),
-        customRender: text => new Date(text).toLocaleString()
-    },
-    {
-        title: '状态', dataIndex: 'status', width: 200, sorter: localSort('status'),
+        title: '状态', dataIndex: 'status', width: 80, sorter: localSort('status'),
         customRender: text => {
             const statusItem = orderStatus.find(item => item.value === text);
             return statusItem ? statusItem.label : text;
@@ -142,19 +135,7 @@ const columns = [
         customRender: text => (text / 100).toFixed(2)
     },
     {
-        title: '支付时间', dataIndex: 'payTime', width: 200, sorter: localSort('payTime'),
-        customRender: text => text ? new Date(text).toLocaleString() : '-'
-    },
-    {
-        title: '配送时间', dataIndex: 'consignTime', width: 200, sorter: localSort('consignTime'),
-        customRender: text => text ? new Date(text).toLocaleString() : '-'
-    },
-    {
-        title: '订单结束时间', dataIndex: 'endTime', width: 200, sorter: localSort('endTime'),
-        customRender: text => text ? new Date(text).toLocaleString() : '-'
-    },
-    {
-        title: '关闭时间', dataIndex: 'closeTime', width: 200, sorter: localSort('closeTime'),
+        title: '支付时间', dataIndex: 'payTime', width: 180, sorter: localSort('payTime'),
         customRender: text => text ? new Date(text).toLocaleString() : '-'
     }
 ]
@@ -177,13 +158,9 @@ const detailFields = [
     { label: '用户名', key: 'username', default: '-' },
     { label: '总费用', key: 'totalFee', format: v => v ? '￥' + (v / 100).toFixed(2) : '-' },
     { label: '订单状态', key: 'status', format: v => getStatusLabel(v) },
-    { label: '创建时间', key: 'createTime', default: '-' },
-    { label: '支付时间', key: 'payTime', default: '-' },
-    { label: '配送时间', key: 'consignTime', default: '-' },
-    { label: '订单结束时间', key: 'endTime', default: '-' },
-    { label: '关闭时间', key: 'closeTime', default: '-' },
-    { label: '评论时间', key: 'commentTime', default: '-' },
-    { label: '更新时间', key: 'updateTime', default: '-' }
+    { label: '创建时间', key: 'createTime', default: '-', format: v => v ? new Date(v).toLocaleString() : '-' },
+    { label: '支付时间', key: 'payTime', default: '-', format: v => v ? new Date(v).toLocaleString() : '-' },
+    { label: '更新时间', key: 'updateTime', default: '-', format: v => v ? new Date(v).toLocaleString() : '-' }
 ]
 
 // 根据订单ID更新数据并显示订单详情面板
