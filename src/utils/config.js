@@ -4,8 +4,8 @@ import { join, resourceDir, tempDir, appLocalDataDir } from '@tauri-apps/api/pat
 /**
  * 默认配置常量
  */
-const DEFAULT_API_URL = "https://shop.caolib.ggff.net";
-const DEFAULT_URLS = ["https://shop.caolib.ggff.net", "http://localhost:8080"];
+const DEFAULT_API_URL = "https://api.caolib.ggff.net";
+const DEFAULT_URLS = ["https://api.caolib.ggff.net", "http://localhost:80"];
 
 /**
  * 获取配置文件路径

@@ -169,7 +169,7 @@ async function testConnection() {
         await updateConfig(configForm.value.currentUrl)
         // 测试连接
         axios.defaults.baseURL = configForm.value.currentUrl
-        await axios.get('/user/health').then(() => {
+        await axios.get('/users/health').then(() => {
             message.success('连接成功')
         }).catch(() => {
             message.error('连接失败')
