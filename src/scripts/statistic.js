@@ -3,9 +3,9 @@ import { predictSalesService } from '../api/predict.js';
 
 /**
  * 计算指定日期之后 N 天的日期。
- * @param {string} dateString - 起始日期字符串 (格式：YYYY-MM-DD)。
- * @param {number} days - 要增加的天数。
- * @returns {string} 计算后的日期字符串 (格式：YYYY-MM-DD)。
+ * @param {string} dateString - 起始日期字符串 
+ * @param {number} days - 要增加的天数
+ * @returns {string} 计算后的日期字符串 
  */
 export function getDateAfter(dateString, days) {
     const date = new Date(dateString);
@@ -16,7 +16,7 @@ export function getDateAfter(dateString, days) {
 /**
  * 获取 N 天前的日期字符串
  * @param {number} daysAgo - 多少天前
- * @returns {string} YYYY-MM-DD 格式的日期字符串
+ * @returns {string} 日期字符串
  */
 function getPastDateString(daysAgo) {
     const date = new Date();
@@ -85,7 +85,7 @@ function extractProductsFromData(rawData) {
                 if (item && item.itemId && !productsMap.has(item.itemId)) {
                     productsMap.set(item.itemId, {
                         id: item.itemId,
-                        name: item.name || `API 商品 ${item.itemId}`
+                        name: item.name || `商品 ${item.itemId}`
                     });
                 }
             });
@@ -146,10 +146,6 @@ export async function getSalesPrediction(historicalData, daysToPredict) {
     }
     try {
         const predictions = await predictSalesService(historicalData, daysToPredict);
-        // Optionally keep warn for debugging null predictions?
-        // if (predictions === null) {
-        //      console.warn('(statistic.js) 预测服务未能返回有效的预测结果。');
-        // }
         return predictions;
     } catch (error) {
         console.error("(statistic.js) 调用 predictSalesService 时发生意外错误:", error); // Keep error log

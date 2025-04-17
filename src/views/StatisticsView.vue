@@ -13,6 +13,7 @@ import {
     Row, Col, Select, Space, Card, Descriptions,
     DescriptionsItem, Spin, Alert, Button
 } from 'ant-design-vue';
+import { jumpToItem } from '@/router/jump';
 
 const chartContainer = ref(null)
 const availableProducts = ref([])
@@ -28,6 +29,10 @@ const isLoadingProductInfo = ref(false)
 
 const predictionStatusMessage = ref('');
 const isRealTime = ref(false);
+
+// Add new refs for weekly totals
+const firstWeekSalesTotal = ref(null);
+const secondWeekSalesTotal = ref(null);
 
 const buttonText = computed(() => {
     return isRealTime.value ? '切换到历史数据' : '切换到实时数据';
@@ -137,6 +142,9 @@ async function initStatistics() {
     predictionStatusMessage.value = '';
     stockMessage.value = '';
     currentProductInfo.value = null;
+    // Reset weekly totals
+    firstWeekSalesTotal.value = null;
+    secondWeekSalesTotal.value = null;
 
     const salesMap = new Map();
     allSalesData.value.forEach(dailyEntry => {
@@ -160,6 +168,22 @@ async function initStatistics() {
     const actualSales = itemDailySalesResult.map(item => item.num);
     const allRawDates = itemDailySalesResult.map(item => item.time);
     const historyLength = actualSales.length;
+
+    // Calculate weekly totals
+    if (historyLength >= 7) {
+        firstWeekSalesTotal.value = actualSales.slice(0, 7).reduce((sum, val) => sum + (val || 0), 0).toFixed(0);
+    } else {
+        firstWeekSalesTotal.value = '数据不足';
+    }
+
+    if (historyLength >= 14) {
+        secondWeekSalesTotal.value = actualSales.slice(7, 14).reduce((sum, val) => sum + (val || 0), 0).toFixed(0);
+    } else if (historyLength >= 7) {
+        // Only show 'insufficient data' if there's at least one week
+        secondWeekSalesTotal.value = '数据不足';
+    } else {
+        secondWeekSalesTotal.value = null; // Don't show if less than 7 days
+    }
 
     const daysToPredictFuture = 7;
     let future7DayPredictions = null;
@@ -196,7 +220,7 @@ async function initStatistics() {
     let chartDates = [...allRawDates];
     let chartActual = [...actualSales];
     let chartPredicted = Array(historyLength).fill(null);
-    const predictionLegendName = "API 预测";
+    const predictionLegendName = "预测销量";
     if (isPredictionSuccessful && future7DayPredictions) {
         let lastHistoricalDate = allRawDates.length > 0 ? allRawDates[historyLength - 1] : new Date().toISOString().substring(0, 10);
         for (let i = 1; i <= daysToPredictFuture; i++) {
@@ -211,7 +235,7 @@ async function initStatistics() {
         series.push(createPredictedSalesSeries(chartPredicted, predictionLegendName));
     }
 
-    const chartTitleText = isPredictionSuccessful ? '历史销量与 API 预测' : '历史销量统计';
+    const chartTitleText = isPredictionSuccessful ? '历史销量与销量预测' : '历史销量统计';
     const legendData = isPredictionSuccessful ? ['实际销量', predictionLegendName] : ['实际销量'];
 
     const options = {
@@ -269,6 +293,15 @@ async function initStatistics() {
     chartInstance.setOption(options, true);
 }
 
+/**
+ * 跳转到补货页面
+ */
+const goToRestock = () => {
+    if (targetItemId.value) {
+        jumpToItem(targetItemId.value);
+    }
+};
+
 onMounted(async () => {
     const resizeHandler = () => {
         if (chartInstance) {
@@ -298,57 +331,93 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="statistics-view">
-        <Card :bodyStyle="{ padding: '24px' }">
-            <Row :gutter="16" style="margin-bottom: 16px;" justify="start">
-                <Col>
+    <div class="statistics-container">
+        <Spin :spinning="isLoadingList || isLoadingPrediction || isLoadingProductInfo">
+            <Row :gutter="[16, 16]">
+                <Col :span="24">
                 <Space>
-                    <span>选择商品:</span>
-                    <Select v-model="targetItemId" style="width: 500px" placeholder="选择商品" @change="handleProductChange"
-                        :loading="isLoadingList">
-                        <Select.Option v-for="product in availableProducts" :key="product.id" :value="product.id">
-                            {{ product.name }} ({{ product.id }})
-                        </Select.Option>
-                    </Select>
-                    <Button @click="toggleDataSource">{{ buttonText }}</Button>
+                    <Select v-if="!isLoadingList" :disabled="isLoadingPrediction" v-model="targetItemId"
+                        style="width: 60vw" placeholder="选择商品" @change="handleProductChange"
+                        :options="availableProducts.map(p => ({ value: p.id, label: p.name }))" />
+                    <span v-if="isLoadingList">商品列表加载中...</span>
+                    <Button @click="toggleDataSource" :disabled="isLoadingList || isLoadingPrediction">
+                        {{ buttonText }}
+                    </Button>
                 </Space>
                 </Col>
-            </Row>
 
-            <Spin :spinning="isLoadingProductInfo || isLoadingPrediction" style="margin-bottom: 16px;">
-                <Card size="small" :bordered="false">
-                    <Descriptions bordered size="small">
-                        <DescriptionsItem label="库存预警">
-                            <Alert v-if="stockMessage" :message="stockMessage"
-                                :type="stockMessage.includes('不足') ? 'warning' : (stockMessage.includes('失败') || stockMessage.includes('错误') ? 'error' : 'success')"
-                                showIcon />
-                            <span v-else>-</span>
-                        </DescriptionsItem>
-                        <DescriptionsItem label="预测状态" v-if="predictionStatusMessage">
-                            <Spin :spinning="isLoadingPrediction" size="small">{{ predictionStatusMessage }}</Spin>
-                        </DescriptionsItem>
-                    </Descriptions>
+                <Col :span="24">
+                <Card>
+                    <Row :gutter="[16, 16]">
+                        <Col :span="24">
+                        <Descriptions bordered :column="{ xxl: 5, xl: 4, lg: 3, md: 2, sm: 1, xs: 1 }">
+                            <!-- Add First Week Sales -->
+                            <DescriptionsItem label="首周销售总量">
+                                <span v-if="firstWeekSalesTotal !== null && firstWeekSalesTotal !== '数据不足'">{{
+                                    firstWeekSalesTotal }}</span>
+                                <span v-else-if="firstWeekSalesTotal === '数据不足'">数据不足</span>
+                                <span v-else>-</span>
+                            </DescriptionsItem>
+                            <!-- Add Second Week Sales -->
+                            <DescriptionsItem label="次周销售总量">
+                                <span v-if="secondWeekSalesTotal !== null && secondWeekSalesTotal !== '数据不足'">{{
+                                    secondWeekSalesTotal }}</span>
+                                <span v-else-if="secondWeekSalesTotal === '数据不足'">数据不足</span>
+                                <span v-else>-</span>
+                            </DescriptionsItem>
+
+                            <DescriptionsItem label="当前库存">
+                                <span v-if="currentProductInfo">{{ currentProductInfo.stock }}</span>
+                                <span v-else>-</span>
+                            </DescriptionsItem>
+                            <DescriptionsItem label="未来7日预计总销量">
+                                <span
+                                    v-if="currentProductInfo && stockMessage && !stockMessage.includes('不足') && !stockMessage.includes('失败') && !stockMessage.includes('错误') && !stockMessage.includes('无足够历史数据')">
+                                    {{ stockMessage.split('预测销量: ')[1]?.split(')')[0] || '-' }}
+                                </span>
+                                <span v-else-if="stockMessage.includes('不足')">
+                                    {{ stockMessage.split('预测销量: ')[1]?.split(')')[0] || '-' }}
+                                </span>
+                                <span
+                                    v-else-if="predictionStatusMessage.includes('不足') || predictionStatusMessage.includes('失败')">-</span>
+                                <span v-else>-</span>
+                            </DescriptionsItem>
+                            <DescriptionsItem>
+                                <div v-if="stockMessage">
+                                    <Alert :message="stockMessage"
+                                        :type="stockMessage.includes('不足') ? 'warning' : (stockMessage.includes('失败') || stockMessage.includes('错误') ? 'error' : 'success')"
+                                        showIcon>
+                                        <template #action>
+                                            <Button type="link" size="small" v-if="stockMessage.includes('不足')"
+                                                @click="goToRestock">
+                                                前往补货
+                                            </Button>
+                                        </template>
+                                    </Alert>
+                                </div>
+                                <span v-else>-</span>
+                            </DescriptionsItem>
+                        </Descriptions>
+                        <div v-if="predictionStatusMessage && !stockMessage" style="margin-top: 10px;">
+                            <Alert :message="predictionStatusMessage" type="info" showIcon />
+                        </div>
+                        </Col>
+
+                        <Col :span="24">
+                        <div ref="chartContainer" style="width: 100%; height: 400px; margin-top: 16px;"></div>
+                        </Col>
+                    </Row>
                 </Card>
-            </Spin>
-
-            <div ref="chartContainer" style="width: 100%; height: 400px;"></div>
-
-        </Card>
+                </Col>
+            </Row>
+        </Spin>
     </div>
 </template>
 
 <style scoped>
-.statistics-view {
-    width: 100%;
-    height: 100%;
-    padding: 24px;
+.statistics-container {
+    padding: 20px;
 }
 
-.ant-spin-container {
-    transition: opacity 0.3s;
-}
-
-.ant-spin-blur {
-    opacity: 0.5;
-}
+/* Additional styles if needed */
 </style>
