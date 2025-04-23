@@ -26,7 +26,6 @@ const registerService = (user) => {
 // 退出登录
 const logout = (msg) => {
   console.log(msg)
-  //TODO 退出登录，后端删除用户相关信息和token
   const userInfo = useUserStore()
   userInfo.clearUser()
   jump('/login')

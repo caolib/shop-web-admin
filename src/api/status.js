@@ -1,5 +1,4 @@
 import request from '@/utils/request'
-import { message } from 'ant-design-vue'
 
 // 定义服务的健康检查端点
 const services = ['orders', 'users', 'commodity', 'pays']

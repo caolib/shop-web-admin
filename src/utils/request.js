@@ -11,11 +11,11 @@ const getUserStore = () => {
 
 const instance = axios.create({
   // 使用默认值，后续更新
-  baseURL: import.meta.env.VITE_APP_BASE_API
+  baseURL: import.meta.env.VITE_APP_BASE_API,
 })
 
 // 异步获取配置的baseURL并更新
-getBaseURL().then(url => {
+getBaseURL().then((url) => {
   instance.defaults.baseURL = url
 })
 
@@ -31,15 +31,15 @@ instance.interceptors.response.use(
     if (code === undefined || code === 200 || code >= 1000) return result.data
     // 异常处理
     if (code === 400) {
-      message.error(msg);
+      message.error(msg)
     } else if (code === 401) {
-      message.error('请先登录！');
-      router.push('/login');
+      message.error('请先登录！')
+      router.push('/login')
     } else if (code === 500) {
-      message.error(msg);
-      console.log(msg);
+      message.error(msg)
+      console.log(msg)
     } else {
-      message.error('未知异常！' + code);
+      message.error('未知异常！' + code)
     }
     return Promise.reject(result)
   },
@@ -90,7 +90,7 @@ instance.interceptors.request.use(
 
     const noAuthUrls = ['/login', '/register', 'health']
     // 如果是不需要认证的url直接放行
-    if (noAuthUrls.some(url => config.url.endsWith(url))) {
+    if (noAuthUrls.some((url) => config.url.endsWith(url))) {
       return config
     }
     const userInfo = getUserStore()
