@@ -11,31 +11,16 @@ const checkServicesHealth = async () => {
   const status = new Map()
 
   for (const service of services)
-    status.set(service, await checkService(service))
+    status.set(service, await checkSrv(service))
 
   return status
 }
 
 
-/**
- * 检查服务是否健康
- * @param service 服务名称
- */
-const checkService = (service) => {
-  return request.get(`/${service}/health`).then(() => {
-    return true;
-  }).catch(() => {
-    return false;
-  });
-}
-
-
 // 检查单个服务状态
 const checkSrv = async (service) => {
-  const response = await checkService(service);
-  const isOk = response?.code === 200;
-  message[isOk ? 'success' : 'error'](`${service} 服务${isOk ? '正常' : '异常'}`);
-  return isOk;
+  const response = await request.get(`/${service}/health`);
+  return response.code === 200;
 }
 
 // 获取所有服务状态
@@ -44,4 +29,4 @@ const getServiceStatus = async (serviceStatus) => {
 }
 
 
-export { checkServicesHealth, checkService, checkSrv, getServiceStatus }
+export { checkServicesHealth, checkSrv, getServiceStatus }

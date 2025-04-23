@@ -21,6 +21,7 @@ import { checkSrv, getServiceStatus } from '@/api/status.js'
 import { logout } from '@/api/login.js'
 import { flushUser, isLogin, user } from '@/api/app.js'
 import { goPage, jump } from './router/jump'
+import { message } from 'ant-design-vue';
 
 const spinning = ref(false)
 const route = useRoute()
@@ -36,6 +37,14 @@ onMounted(() => {
   spinning.value = false
 })
 
+// 检查选中的服务
+const checkSelectedService = (service) => {
+  checkSrv(service).then((res) => {
+    message.success(`${service} 服务正常`)
+  }).catch(() => {
+    message.error(`${service} 服务异常`)
+  })
+}
 
 </script>
 
@@ -106,13 +115,6 @@ onMounted(() => {
             </router-link>
           </a-breadcrumb-item>
 
-          <!-- 设置 -->
-          <!-- <a-breadcrumb-item>
-            <router-link to="/config" :class="['route-link', { active: isActive('/config') }]">
-              <SettingFilled />
-            </router-link>
-          </a-breadcrumb-item> -->
-
           <!--退出登录-->
           <a-breadcrumb-item v-if="isLogin" style="color: gray;" class="logout" @click="logout('')">
             <LogoutOutlined />
@@ -134,7 +136,8 @@ onMounted(() => {
           <template #overlay>
             <a-menu>
               <a-menu-item v-for="(status, service) in serviceStatus" :key="service">
-                <span @click="checkSrv(status[0])" :style="{ color: status[1] ? '#00b96b' : '#f30213' }">{{ status[0]
+                <span @click="checkSelectedService(status[0])" :style="{ color: status[1] ? '#00b96b' : '#f30213' }">{{
+                  status[0]
                 }}</span>
               </a-menu-item>
             </a-menu>
