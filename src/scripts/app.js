@@ -1,8 +1,4 @@
-import { computed, onMounted, onUnmounted, ref, h } from 'vue'
-import { checkSrv, getServiceStatus } from '@/api/status.js'
-import { logout } from '@/api/login.js'
-import { flushUser, isLogin, user } from '@/api/app.js'
-import { goPage, jump } from '@/router/jump'
+import { computed, ref } from 'vue'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
 const serviceStatus = ref(new Map()) // 服务状态

@@ -1,5 +1,4 @@
 import request from '@/utils/request'
-import { message } from 'ant-design-vue'
 
 /**
  * 创建订单
@@ -18,8 +17,6 @@ const getOrderByIdService = (id) => {
   return request.get(`/orders/${id}`)
 }
 
-
-// FIXME: 改为分页
 /**
  * 获取用户所有订单
  */
@@ -27,7 +24,6 @@ const getUserOrdersService = () => {
   return request.get('/orders')
 }
 
-// FIXME: 改为分页
 /**
  * 获取用户订单详情列表
  */
@@ -40,8 +36,8 @@ const getUserOrderDetailsService = () => {
  * @param ids 订单id数组
  */
 const deleteOrdersService = (ids) => {
-  console.log(ids);
-  return request.delete('/orders', { data: ids });
+  console.log(ids)
+  return request.delete('/orders', { data: ids })
 }
 
 /**
@@ -51,7 +47,6 @@ const deleteOrdersService = (ids) => {
 const getOrderPageService = (query) => {
   return request.get(`/orders/manage`, { params: query })
 }
-
 
 /**
  * 删除订单
@@ -69,7 +64,6 @@ const getOrderDetailService = (id) => {
   return request.get(`/orders/manage/${id}`)
 }
 
-
 export {
   createOrderService,
   getOrderByIdService,
@@ -78,5 +72,5 @@ export {
   deleteOrdersService,
   getOrderPageService,
   removeOrderService,
-  getOrderDetailService
+  getOrderDetailService,
 }

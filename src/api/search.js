@@ -7,8 +7,6 @@ const searchHomeService = () => {
   return request.get('/commodity/home')
 }
 
-
-
 /**
  * 搜索商品
  */
