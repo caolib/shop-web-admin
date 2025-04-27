@@ -112,10 +112,7 @@ const checkSelectedService = (service) => {
 
           <!--订单管理-->
           <a-breadcrumb-item>
-            <router-link
-              to="/order-list"
-              :class="['route-link', { active: isActive('/order-list') }]"
-            >
+            <router-link to="/order-list" :class="['route-link', { active: isActive('/order-list') }]">
               <FileTextOutlined />
               订单管理
             </router-link>
@@ -123,10 +120,7 @@ const checkSelectedService = (service) => {
 
           <!--统计-->
           <a-breadcrumb-item>
-            <router-link
-              to="/statistics"
-              :class="['route-link', { active: isActive('/statistics') }]"
-            >
+            <router-link to="/statistics" :class="['route-link', { active: isActive('/statistics') }]">
               <PieChartOutlined />
               统计
             </router-link>
@@ -150,34 +144,16 @@ const checkSelectedService = (service) => {
       <!-- 修改窗口操作区域，使用 v-if 渲染图标 -->
       <div class="window-controls">
         <!--设置-->
-        <a-button
-          class="win-btn"
-          style="color: gray"
-          @click="jump('/config')"
-          :icon="h(SettingFilled)"
-        />
+        <a-button class="win-btn" style="color: gray" @click="jump('/config')" :icon="h(SettingFilled)" />
         <!--服务状态-->
         <a-dropdown>
-          <a-button
-            style="color: #00b96b"
-            class="win-btn"
-            v-if="allServicesUp"
-            :icon="h(CheckCircleFilled)"
-          />
-          <a-button
-            style="color: #f30213"
-            class="win-btn"
-            v-else
-            :icon="h(ExclamationCircleFilled)"
-          />
+          <a-button style="color: #00b96b" class="win-btn" v-if="allServicesUp" :icon="h(CheckCircleFilled)" />
+          <a-button style="color: #f30213" class="win-btn" v-else :icon="h(ExclamationCircleFilled)" />
           <template #overlay>
             <a-menu>
               <a-menu-item v-for="(status, service) in serviceStatus" :key="service">
-                <span
-                  @click="checkSelectedService(status[0])"
-                  :style="{ color: status[1] ? '#00b96b' : '#f30213' }"
-                  >{{ status[0] }}</span
-                >
+                <span @click="checkSelectedService(status[0])" :style="{ color: status[1] ? '#00b96b' : '#f30213' }">{{
+                  status[0] }}</span>
               </a-menu-item>
             </a-menu>
           </template>
@@ -187,7 +163,7 @@ const checkSelectedService = (service) => {
         <!--前进-->
         <a-button class="win-btn" @click="goPage(1)" :icon="h(ArrowRightOutlined)" />
         <!--刷新-->
-        <a-button class="win-btn" @click="flushPage" :icon="h(ReloadOutlined)" />
+        <!-- <a-button class="win-btn" @click="flushPage" :icon="h(ReloadOutlined)" /> -->
         <!--最小化-->
         <a-button class="win-btn" @click="minimize" :icon="h(MinusOutlined)" />
         <!--切换最大化按钮-->

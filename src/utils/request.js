@@ -9,10 +9,7 @@ const getUserStore = () => {
   return useUserStore()
 }
 
-const instance = axios.create({
-  // 使用默认值，后续更新
-  baseURL: import.meta.env.VITE_APP_BASE_API,
-})
+const instance = axios.create({})
 
 // 异步获取配置的baseURL并更新
 getBaseURL().then((url) => {
