@@ -4,7 +4,7 @@ import { join, resourceDir, tempDir, appLocalDataDir } from '@tauri-apps/api/pat
 /**
  * 默认配置常量
  */
-const DEFAULT_API_URL = "https://api.caolib.ggff.net";
+const DEFAULT_API_URL = "http://localhost:80";
 const DEFAULT_URLS = ["https://api.caolib.ggff.net", "http://localhost:80"];
 
 /**
