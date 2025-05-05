@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 网上商店管理员桌面端
+- 这是一个基于vue+antdv+tauri构建的桌面端应用,使用pnpm管理
+- 相关技术:axios、pinia、scss、vue router
+- 你可以使用mcp服务查看浏览器控制台信息
+
+- 这个项目对应的用户端是 caolib/shop-web 仓库,可以参考界面风格

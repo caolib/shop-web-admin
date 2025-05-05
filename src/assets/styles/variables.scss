@@ -6,5 +6,27 @@ $light-primary-color: #00b96b30; // 浅色主题色
 $tb-row-bg: #00b96b1f; // 表格行背景色
 $link-color: #4493f8; // 链接颜色
 
+// 背景色
+$page-background: #fff;
+$card-background: #ffffff;
+
+// 文字颜色
+$text-primary: #333333;
+$text-secondary: #666666;
+$text-light: #999999;
+
+// 边框和阴影
 $border: 1px solid #f0f0f0; // 边框
-$box-shadow: 0 1px 2px -2px rgba(0, 0, 0, 0.16), 0 3px 6px 0 rgba(0, 0, 0, 0.12), 0 5px 12px 4px rgba(0, 0, 0, 0.09);
+$border-radius: 8px; // 统一的圆角大小
+$box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+$hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// 动画
+$transition-normal: all 0.3s ease;
