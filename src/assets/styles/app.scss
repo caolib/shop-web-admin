@@ -1,56 +1,390 @@
 @use "./variables.scss" as *;
 
+// 全局样式
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: $page-background;
+  color: $text-primary;
+  margin: 0;
+  padding: 0;
+}
+
+// 导航栏
 .top-navbar {
   display: flex;
   justify-content: space-between;
-  height: auto;
+  align-items: center;
+  height: 48px;
   position: fixed;
   top: 0;
-  background: #f2f4f7;
+  background-color: white;
   width: 100%;
   z-index: 1000;
   min-width: 1000px;
-  border-bottom: $border;
+  border-bottom: 1px solid #f0f0f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  transition: $transition-normal;
+  overflow: hidden;
 }
 
-.bread-navbar {
-  padding: 5px;
+// 新导航容器
+.nav-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  max-width: calc(100% - 240px);
+  padding-left: $spacing-md;
+  
+  &::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+    display: none;
+  }
 }
 
-.route-link:hover {
-  color: $primary-color !important;
+// 导航部分
+.nav-section {
+  display: flex;
+  align-items: center;
+  margin-right: $spacing-md;
+  height: 100%;
 }
 
-a:hover {
-  color: $primary-color !important;
+// 导航链接容器
+.nav-links {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: $spacing-md;
+  overflow: visible;
+  
+  @media (max-width: 1200px) {
+    gap: $spacing-sm;
+  }
 }
 
-.logout:hover {
+// 导航链接样式
+.nav-link {
+  padding: 0 $spacing-sm;
+  height: 32px;
+  border-radius: $border-radius;
+  display: inline-flex;
+  align-items: center;
+  transition: $transition-normal;
+  white-space: nowrap;
+  font-weight: 500;
+  color: $text-secondary;
+  
+  @media (max-width: 1200px) {
+    padding: 0 $spacing-xs;
+  }
+  
+  .anticon {
+    margin-right: 4px;
+    font-size: 14px;
+  }
+  
+  &:hover {
+    color: $primary-color !important;
+    background-color: $light-primary-color;
+  }
+  
+  &.active {
+    background-color: $light-primary-color;
+    color: $primary-color !important;
+  }
+  
+  &.logout {
+    cursor: pointer;
+    
+    &:hover {
+      color: $red !important;
+      background-color: rgba($red, 0.1);
+    }
+  }
+}
+
+// 用户信息样式
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 0 $spacing-sm;
+  height: 32px;
+  border-radius: $border-radius;
+  background-color: rgba($primary-color, 0.1);
+  color: $primary-color;
+  font-weight: 500;
+  transition: $transition-normal;
+  white-space: nowrap;
   cursor: pointer;
-  color: $red !important;
+  
+  .anticon {
+    margin-right: 4px;
+    font-size: 14px;
+  }
+  
+  .dropdown-icon {
+    margin-left: 4px;
+    font-size: 12px;
+  }
+  
+  &:hover {
+    background-color: rgba($primary-color, 0.2);
+  }
+}
+
+// 下拉菜单链接样式
+.dropdown-link {
+  display: flex;
+  align-items: center;
+  color: $text-secondary;
+  padding: 4px 0;
+  transition: $transition-normal;
+  
+  .anticon {
+    margin-right: 8px;
+  }
+  
+  &:hover {
+    color: $primary-color;
+  }
+  
+  &.logout-link {
+    &:hover {
+      color: $red !important;
+    }
+  }
+}
+
+.route-link {
+  transition: $transition-normal;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius;
+  display: inline-flex;
+  align-items: center;
+  
+  .anticon {
+    margin-right: 4px;
+  }
+  
+  &:hover {
+    color: $primary-color !important;
+    background-color: $light-primary-color;
+  }
 }
 
 .active {
   background: $light-primary-color;
   color: $primary-color !important;
+  border-radius: $border-radius;
 }
 
+a {
+  transition: $transition-normal;
+  
+  &:hover {
+    color: $primary-color !important;
+  }
+}
+
+.logout {
+  transition: $transition-normal;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius;
+  display: inline-flex;
+  align-items: center;
+  
+  .anticon {
+    margin-right: 4px;
+  }
+  
+  &:hover {
+    cursor: pointer;
+    color: $red !important;
+    background-color: rgba(243, 2, 19, 0.1);
+  }
+}
+
+// 窗口控制按钮
 .win-btn {
   background: transparent;
   border: 0;
   font-size: 12px;
-}
-
-.win-btn:hover {
-  background: white;
-  color: $primary-color;
-}
-
-.win-btn.close:hover {
-  color: white;
-  background: #f30213ba;
+  margin: 0 $spacing-xs;
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition-normal;
+  border-radius: $border-radius;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.8);
+    color: $primary-color;
+  }
+  
+  &.close:hover {
+    color: white;
+    background: $red;
+  }
 }
 
 .window-controls {
-  min-width: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 220px;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-left: auto;
+  background-color: white;
+  
+  .status-btn {
+    &.error {
+      color: #f30213;
+    }
+    
+    &:not(.error) {
+      color: #00b96b;
+    }
+  }
+  
+  .win-btn {
+    height: 48px;
+    width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0;
+    transition: all 0.2s;
+    margin: 0;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    &.maximize:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+    
+    &.close:hover {
+      background-color: #f30213;
+      color: white;
+    }
+  }
+}
+
+// 导航控制样式
+.nav-controls, .window-action-controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  overflow: visible;
+}
+
+.window-action-controls {
+  margin-left: $spacing-sm;
+}
+
+// 卡片和容器样式
+.app-card {
+  background: $card-background;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  padding: $spacing-md;
+  transition: $transition-normal;
+  
+  &:hover {
+    box-shadow: $hover-shadow;
+  }
+}
+
+// 主内容区域
+.main-content {
+  margin-top: 48px;
+  padding: $spacing-md;
+}
+
+// 服务状态菜单样式
+.service-menu {
+  min-width: 150px;
+  
+  .service-item {
+    display: flex;
+    align-items: center;
+    
+    &.service-error {
+      color: #f30213;
+    }
+    
+    .status-icon {
+      margin-right: 8px;
+      
+      &.success {
+        color: #00b96b;
+      }
+      
+      &.error {
+        color: #f30213;
+      }
+    }
+  }
+}
+
+// 顶部导航栏样式优化
+.top-navbar {
+  background-color: white;
+  border-bottom: 1px solid #f0f0f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  
+  .nav-container {
+    .nav-section {
+      .user-info {
+        padding: 0 12px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.02);
+        }
+      }
+    }
+    
+    .nav-links {
+      .nav-link {
+        position: relative;
+        padding: 0 16px;
+        transition: all 0.3s;
+        
+        &.active {
+          color: $primary-color;
+          
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 16px;
+            right: 16px;
+            height: 2px;
+            background-color: $primary-color;
+            border-radius: 2px;
+          }
+        }
+        
+        &:hover:not(.active) {
+          color: $primary-color;
+          background-color: rgba(0, 0, 0, 0.02);
+        }
+      }
+    }
+  }
 }

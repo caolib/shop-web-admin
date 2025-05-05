@@ -1,5 +1,205 @@
 @use "./variables.scss" as *;
 
 .user-view {
-    padding: 20px;
+    min-height: 100%;
+    padding: $spacing-md;
+    background-color: $page-background;
+}
+
+.page-header {
+    margin-bottom: $spacing-lg;
+    
+    .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 8px;
+        margin-bottom: 0;
+        
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: $primary-color;
+            border-radius: 2px;
+        }
+    }
+}
+
+.user-container {
+    background-color: $card-background;
+    border-radius: $border-radius;
+    box-shadow: $box-shadow;
+    padding: $spacing-lg;
+    margin-bottom: $spacing-lg;
+    transition: $transition-normal;
+
+    &:hover {
+        box-shadow: $hover-shadow;
+    }
+}
+
+.search-section {
+    margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-md;
+    
+    .ant-form-item {
+        margin-bottom: $spacing-sm;
+        margin-right: 0;
+        
+        .ant-form-item-label {
+            font-weight: 500;
+        }
+    }
+}
+
+.search-input {
+    width: 180px;
+    border-radius: $border-radius;
+    
+    &:focus, &:hover {
+        border-color: $primary-color;
+    }
+}
+
+.search-select {
+    width: 180px;
+    border-radius: $border-radius;
+}
+
+.search-button {
+    border-radius: $border-radius;
+    height: 32px;
+    transition: $transition-normal;
+    
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.table-section {
+    .ant-table {
+        border-radius: $border-radius;
+        overflow: hidden;
+        
+        .ant-table-thead > tr > th {
+            background-color: rgba($primary-color, 0.05);
+            font-weight: 500;
+        }
+        
+        .ant-table-tbody > tr:hover > td {
+            background-color: rgba($primary-color, 0.05);
+        }
+    }
+}
+
+.editable-cell {
+    padding: 0;
+    position: relative;
+}
+
+.editable-input {
+    margin-top: -3px;
+    margin-bottom: -3px;
+    border-radius: $border-radius;
+    
+    &:focus {
+        border-color: $primary-color;
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+    }
+}
+
+.editable-text {
+    display: block;
+    padding: 2px 0;
+}
+
+.balance-text {
+    color: #f50;
+    font-weight: 500;
+}
+
+.date-text {
+    font-size: 13px;
+    color: $text-secondary;
+}
+
+.action-buttons {
+    display: flex;
+    white-space: nowrap;
+}
+
+.action-button {
+    border-radius: $border-radius;
+    transition: $transition-normal;
+    margin-right: 0;
+    
+    &:hover {
+        transform: translateY(-2px);
+    }
+    
+    &.edit-button {
+        background-color: #1890ff;
+        border-color: #1890ff;
+    }
+    
+    &.save-button {
+        background-color: #52c41a;
+        border-color: #52c41a;
+    }
+    
+    &.restore-button {
+        &:hover {
+            background-color: darken(#00b96b, 5%);
+            border-color: darken(#00b96b, 5%);
+        }
+    }
+}
+
+// 调整操作列按钮的间距
+.ant-space {
+    .ant-btn {
+        margin-right: 0 !important;
+    }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+    .user-container {
+        padding: $spacing-md;
+    }
+    
+    .search-input, .search-select {
+        width: 100%;
+    }
+    
+    .search-form {
+        .ant-form-item {
+            flex: 1 1 100%;
+        }
+    }
+    
+    .action-buttons {
+        .ant-space {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+    }
+    
+    .ant-table {
+        .ant-table-content {
+            overflow-x: auto;
+        }
+    }
 }

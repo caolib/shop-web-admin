@@ -1,51 +1,209 @@
 @use "./variables.scss" as *;
 
 .commodity-page {
-    height: auto;
-    padding: 20px;
+    min-height: 100%;
+    padding: $spacing-md;
+    background-color: $page-background;
+}
+
+.page-header {
+    margin-bottom: $spacing-lg;
+    
+    .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 8px;
+        margin-bottom: 0;
+        
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: $primary-color;
+            border-radius: 2px;
+        }
+    }
+}
+
+.commodity-container {
+    background-color: $card-background;
+    border-radius: $border-radius;
+    box-shadow: $box-shadow;
+    padding: $spacing-lg;
+    margin-bottom: $spacing-lg;
+    transition: $transition-normal;
+
+    &:hover {
+        box-shadow: $hover-shadow;
+    }
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: $text-primary;
+    margin-bottom: $spacing-md;
+    position: relative;
+    padding-left: 12px;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 18px;
+        background-color: $primary-color;
+        border-radius: 2px;
+    }
+}
+
+.image-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.image-preview {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background-color: #fafafa;
+    border-radius: $border-radius;
+    padding: $spacing-md;
+    overflow: hidden;
 }
 
 .commodity-details {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    height: 100%;
 }
 
-.commodity-container {
-    height: 100vh;
-    width: 100vw;
-    margin-top: 20px;
-    padding: 20px;
-    border-radius: 8px;
+.fields-container {
+    flex: 1;
+    margin-bottom: $spacing-md;
+}
+
+.image-url-group {
+    margin-bottom: $spacing-md;
+    position: relative;
+
+    .field-input {
+        width: 95%;
+        border-radius: $border-radius;
+        
+        &:focus {
+            border-color: $primary-color;
+            box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+        }
+    }
 }
 
 .commodity-image {
-    width: 100%;
+    width: 500px;
+    height: auto;
+    object-fit: contain;
     border-radius: 8px;
+    background-color: #f8f8f8;
+    transition: all 0.3s ease;
 }
 
 .field-group {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: $spacing-md;
+    
+    &:has(.spec-editor-wrapper) {
+        margin-bottom: $spacing-lg;
+    }
 }
 
 .field-label {
     min-width: 100px;
+    font-weight: 500;
+    color: $text-secondary;
 }
 
 .field-input {
-    margin-left: 10px;
-    margin-right: 10px;
+    flex: 1;
+    margin-left: $spacing-md;
+    border-radius: $border-radius;
+    
+    &:focus, &:hover {
+        border-color: $primary-color;
+    }
 }
 
 .commodity-buttons {
     margin-top: auto;
-    padding-top: 20px;
+    padding-top: $spacing-lg;
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    
+    .ant-btn {
+        min-width: 120px;
+        height: 40px;
+        font-size: 16px;
+        border-radius: $border-radius;
+        
+        &:not(:last-child) {
+            margin-right: $spacing-md;
+        }
+    }
 }
 
-.image-url-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+.empty-container {
+    padding: $spacing-xl 0;
+    text-align: center;
+    
+    .ant-btn {
+        margin-top: $spacing-lg;
+    }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+    .commodity-container {
+        padding: $spacing-md;
+    }
+    
+    .field-group {
+        flex-direction: column;
+        align-items: flex-start;
+        
+        .field-label {
+            margin-bottom: $spacing-xs;
+        }
+        
+        .field-input {
+            width: 100%;
+            margin-left: 0;
+        }
+    }
+    
+    .commodity-image {
+        height: 300px;
+        margin-bottom: $spacing-lg;
+    }
+}
+
+// 添加规格编辑器样式
+.spec-editor-wrapper {
+    display: block !important;
+    width: 100% !important;
+    
+    // 规格编辑器内部样式覆盖
+    :deep(.spec-editor) {
+        width: 100%;
+    }
 }

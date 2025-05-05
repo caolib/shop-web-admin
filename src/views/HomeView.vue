@@ -37,15 +37,20 @@ onMounted(() => {
     <div class="commodity-body">
       <!--侧边商品分类栏-->
       <div class="commodity-classify">
-        <a-menu mode="inline" theme="light" default-selected-keys="1">
-          <a-menu-item v-for="menuItem in menuItems" :key="menuItem.key">
-            <a-breadcrumb separator=" ">
-              <component :is="menuItem.icon" class="breadcrumb-icon" />
-              <a-breadcrumb-item class="commodity-item" v-for="item in menuItem.items" :key="item"
-                @click="handleClick(item)">
-                {{ item }}
-              </a-breadcrumb-item>
-            </a-breadcrumb>
+        <div class="category-title">商品分类</div>
+        <a-menu mode="inline" theme="light" class="category-menu">
+          <a-menu-item v-for="menuItem in menuItems" :key="menuItem.key" class="category-menu-item">
+            <div class="menu-item-content">
+              <div class="menu-item-icon">
+                <component :is="menuItem.icon" class="breadcrumb-icon" />
+              </div>
+              <div class="category-items">
+                <span v-for="(item, index) in menuItem.items" :key="index" class="commodity-item"
+                  @click.stop="handleClick(item)">
+                  {{ item }}
+                </span>
+              </div>
+            </div>
           </a-menu-item>
         </a-menu>
       </div>
@@ -53,18 +58,21 @@ onMounted(() => {
       <!--商品展示卡片-->
       <a-spin :spinning="loading" tip="loading...">
         <div class="commodity-display">
-          <a-row>
-            <a-col :span="6" v-for="item in commodity" :key="item.id">
+          <div class="section-title">商品列表</div>
+          <a-row :gutter="[16, 16]">
+            <a-col :xs="12" :sm="8" :md="8" :lg="6" v-for="item in commodity" :key="item.id">
               <a-card class="commodity-card" hoverable @click="jumpToItem(item.id)">
                 <template #cover>
-                  <img :src="item.image" alt="" @error="handleImageError" />
+                  <div class="image-container">
+                    <img :src="item.image" alt="" @error="handleImageError" />
+                  </div>
                 </template>
                 <a-card-meta>
                   <template #title>
                     <span class="price">￥{{ (item.price / 100).toFixed(2) }}</span>
                   </template>
                   <template #description>
-                    <span style="color: black">{{ item.name }}</span>
+                    <div class="product-name">{{ item.name }}</div>
                   </template>
                 </a-card-meta>
               </a-card>
@@ -72,9 +80,7 @@ onMounted(() => {
           </a-row>
         </div>
       </a-spin>
-
     </div>
-
   </div>
 </template>
 

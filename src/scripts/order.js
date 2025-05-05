@@ -47,12 +47,12 @@ const handleSearch = async (resetPage = false) => {
   // 拷贝 query并转换日期格式
   const params = { ...query }
 
-  // 日期格式化
-  ;['createStartTime', 'createEndTime'].forEach((field) => {
-    if (params[field]) {
-      params[field] = formatDate(params[field])
-    }
-  })
+    // 日期格式化
+    ;['createStartTime', 'createEndTime'].forEach((field) => {
+      if (params[field]) {
+        params[field] = formatDate(params[field])
+      }
+    })
 
   await getOrderPageService(params)
     .then((res) => {
@@ -115,9 +115,9 @@ const handleDelete = async (orderId) => {
 
 // 提取订单状态数组
 const orderStatus = [
-  { value: 1, label: '未付款' },
-  { value: 4, label: '交易成功' },
-  { value: 5, label: '订单取消' },
+  { value: 1, label: '未付款', color: 'orange' },
+  { value: 4, label: '交易成功', color: 'green' },
+  { value: 5, label: '订单取消', color: 'red' },
 ]
 
 // 表格列配置，增加 width 属性自定义列宽，以及 sorter 属性

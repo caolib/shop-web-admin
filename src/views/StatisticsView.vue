@@ -275,8 +275,8 @@ async function initStatistics() {
         color: isPredictionSuccessful
           ? '#666'
           : predictionStatusMessage.value.includes('失败') ||
-              predictionStatusMessage.value.includes('出错') ||
-              predictionStatusMessage.value.includes('不足')
+            predictionStatusMessage.value.includes('出错') ||
+            predictionStatusMessage.value.includes('不足')
             ? 'red'
             : '#999',
       },
@@ -367,130 +367,325 @@ onMounted(async () => {
 
 <template>
   <div class="statistics-container">
-    <Spin :spinning="isLoadingList || isLoadingPrediction || isLoadingProductInfo">
-      <Row :gutter="[16, 16]">
-        <Col :span="24">
-          <Space>
-            <Select
-              v-if="!isLoadingList"
-              :disabled="isLoadingPrediction"
-              v-model="targetItemId"
-              style="width: 60vw"
-              placeholder="选择商品"
-              @change="handleProductChange"
-              :options="availableProducts.map((p) => ({ value: p.id, label: p.name }))"
-            />
-            <span v-if="isLoadingList">商品列表加载中...</span>
-            <Button @click="toggleDataSource" :disabled="isLoadingList || isLoadingPrediction">
-              {{ buttonText }}
-            </Button>
-          </Space>
-        </Col>
+    <div class="page-header">
+      <h2 class="page-title">销售统计与预测</h2>
+    </div>
 
-        <Col :span="24">
-          <Card>
-            <Row :gutter="[16, 16]">
-              <Col :span="24">
-                <Descriptions bordered :column="{ xxl: 5, xl: 4, lg: 3, md: 2, sm: 1, xs: 1 }">
-                  <!-- Add First Week Sales -->
-                  <DescriptionsItem label="首周销售总量">
-                    <span
-                      v-if="firstWeekSalesTotal !== null && firstWeekSalesTotal !== '数据不足'"
-                      >{{ firstWeekSalesTotal }}</span
-                    >
-                    <span v-else-if="firstWeekSalesTotal === '数据不足'">数据不足</span>
-                    <span v-else>-</span>
-                  </DescriptionsItem>
-                  <!-- Add Second Week Sales -->
-                  <DescriptionsItem label="次周销售总量">
-                    <span
-                      v-if="secondWeekSalesTotal !== null && secondWeekSalesTotal !== '数据不足'"
-                      >{{ secondWeekSalesTotal }}</span
-                    >
-                    <span v-else-if="secondWeekSalesTotal === '数据不足'">数据不足</span>
-                    <span v-else>-</span>
-                  </DescriptionsItem>
+    <a-spin :spinning="isLoadingList || isLoadingPrediction || isLoadingProductInfo">
+      <a-card class="control-card">
+        <div class="control-section">
+          <div class="product-selector">
+            <a-select v-if="!isLoadingList" :disabled="isLoadingPrediction" v-model:value="targetItemId"
+              style="width: 100%" placeholder="选择商品" @change="handleProductChange"
+              :options="availableProducts.map((p) => ({ value: p.id, label: p.name }))" />
+            <a-spin v-else size="small">
+              <span class="loading-text">商品列表加载中...</span>
+            </a-spin>
+          </div>
+          <a-button type="primary" @click="toggleDataSource" :disabled="isLoadingList || isLoadingPrediction"
+            class="data-source-button">
+            {{ buttonText }}
+          </a-button>
+        </div>
+      </a-card>
 
-                  <DescriptionsItem label="当前库存">
-                    <span v-if="currentProductInfo">{{ currentProductInfo.stock }}</span>
-                    <span v-else>-</span>
-                  </DescriptionsItem>
-                  <DescriptionsItem label="未来7日预计总销量">
-                    <span
-                      v-if="
-                        currentProductInfo &&
-                        stockMessage &&
-                        !stockMessage.includes('不足') &&
-                        !stockMessage.includes('失败') &&
-                        !stockMessage.includes('错误') &&
-                        !stockMessage.includes('无足够历史数据')
-                      "
-                    >
-                      {{ stockMessage.split('预测销量: ')[1]?.split(')')[0] || '-' }}
-                    </span>
-                    <span v-else-if="stockMessage.includes('不足')">
-                      {{ stockMessage.split('预测销量: ')[1]?.split(')')[0] || '-' }}
-                    </span>
-                    <span
-                      v-else-if="
-                        predictionStatusMessage.includes('不足') ||
-                        predictionStatusMessage.includes('失败')
-                      "
-                      >-</span
-                    >
-                    <span v-else>-</span>
-                  </DescriptionsItem>
-                  <DescriptionsItem>
-                    <div v-if="stockMessage">
-                      <Alert
-                        :message="stockMessage"
-                        :type="
-                          stockMessage.includes('不足')
-                            ? 'warning'
-                            : stockMessage.includes('失败') || stockMessage.includes('错误')
-                              ? 'error'
-                              : 'success'
-                        "
-                        showIcon
-                      >
-                        <template #action>
-                          <Button
-                            type="link"
-                            size="small"
-                            v-if="stockMessage.includes('不足')"
-                            @click="goToRestock"
-                          >
-                            前往补货
-                          </Button>
-                        </template>
-                      </Alert>
-                    </div>
-                    <span v-else>-</span>
-                  </DescriptionsItem>
-                </Descriptions>
-                <div v-if="predictionStatusMessage && !stockMessage" style="margin-top: 10px">
-                  <Alert :message="predictionStatusMessage" type="info" showIcon />
+      <a-row :gutter="[16, 16]" class="data-row">
+        <a-col :xs="24" :md="12">
+          <a-card class="summary-card" title="销售概览" :bordered="false">
+            <a-row :gutter="[16, 16]">
+              <a-col :xs="24" :sm="12">
+                <div class="stat-box">
+                  <div class="stat-title">首周销售总量</div>
+                  <div class="stat-value" :class="{ 'no-data': firstWeekSalesTotal === '数据不足' }">
+                    {{ firstWeekSalesTotal !== null ? firstWeekSalesTotal : '-' }}
+                  </div>
                 </div>
-              </Col>
+              </a-col>
+              <a-col :xs="24" :sm="12">
+                <div class="stat-box">
+                  <div class="stat-title">次周销售总量</div>
+                  <div class="stat-value" :class="{ 'no-data': secondWeekSalesTotal === '数据不足' }">
+                    {{ secondWeekSalesTotal !== null ? secondWeekSalesTotal : '-' }}
+                  </div>
+                </div>
+              </a-col>
+              <a-col :xs="24" :sm="12">
+                <div class="stat-box">
+                  <div class="stat-title">当前库存</div>
+                  <div class="stat-value">
+                    {{ currentProductInfo ? currentProductInfo.stock : '-' }}
+                  </div>
+                </div>
+              </a-col>
+              <a-col :xs="24" :sm="12">
+                <div class="stat-box">
+                  <div class="stat-title">预计7日销量</div>
+                  <div class="stat-value">
+                    <template
+                      v-if="currentProductInfo && stockMessage && !stockMessage.includes('不足') && !stockMessage.includes('失败') && !stockMessage.includes('错误') && !stockMessage.includes('无足够历史数据')">
+                      {{ stockMessage.split('预测销量: ')[1]?.split(')')[0] || '-' }}
+                    </template>
+                    <template v-else-if="stockMessage.includes('不足')">
+                      {{ stockMessage.split('预测销量: ')[1]?.split(')')[0] || '-' }}
+                    </template>
+                    <template v-else>-</template>
+                  </div>
+                </div>
+              </a-col>
+            </a-row>
 
-              <Col :span="24">
-                <div
-                  ref="chartContainer"
-                  style="width: 100%; height: 400px; margin-top: 16px"
-                ></div>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
-    </Spin>
+            <div v-if="stockMessage" class="stock-alert-container">
+              <a-alert :message="stockMessage"
+                :type="stockMessage.includes('不足') ? 'warning' : stockMessage.includes('失败') || stockMessage.includes('错误') ? 'error' : 'success'"
+                showIcon>
+                <template #action>
+                  <a-button type="link" size="small" v-if="stockMessage.includes('不足')" @click="goToRestock">
+                    前往补货
+                  </a-button>
+                </template>
+              </a-alert>
+            </div>
+
+            <div v-if="predictionStatusMessage && !stockMessage" class="prediction-alert">
+              <a-alert :message="predictionStatusMessage" type="info" showIcon />
+            </div>
+          </a-card>
+        </a-col>
+
+        <a-col :xs="24" :md="12">
+          <a-card class="product-info-card" title="商品信息" :bordered="false" v-if="currentProductInfo">
+            <div class="product-detail">
+              <div class="product-image-container" v-if="currentProductInfo.image">
+                <img :src="currentProductInfo.image" class="product-image" alt="商品图片" />
+              </div>
+              <div class="product-info">
+                <div class="product-name">{{ currentProductInfo.name }}</div>
+                <div class="product-meta">
+                  <div class="meta-item">
+                    <span class="meta-label">价格:</span>
+                    <span class="meta-value">￥{{ (currentProductInfo.price / 100).toFixed(2) }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">分类:</span>
+                    <span class="meta-value">{{ currentProductInfo.category }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">品牌:</span>
+                    <span class="meta-value">{{ currentProductInfo.brand }}</span>
+                  </div>
+                  <div class="meta-item">
+                    <span class="meta-label">销量:</span>
+                    <span class="meta-value">{{ currentProductInfo.sold }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a-card>
+          <a-card v-else class="empty-product-card" :bordered="false">
+            <a-empty description="选择商品后显示详细信息" />
+          </a-card>
+        </a-col>
+      </a-row>
+
+      <a-card class="chart-card" :bordered="false">
+        <div ref="chartContainer" class="chart-container"></div>
+      </a-card>
+    </a-spin>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@use "@/assets/styles/variables.scss" as *;
+
 .statistics-container {
-  padding: 20px;
+  padding: $spacing-md;
 }
 
-/* Additional styles if needed */
+.page-header {
+  margin-bottom: $spacing-lg;
+
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 8px;
+    margin-bottom: 0;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background-color: $primary-color;
+      border-radius: 2px;
+    }
+  }
+}
+
+.control-card {
+  margin-bottom: $spacing-md;
+  box-shadow: $box-shadow;
+  border-radius: $border-radius;
+
+  .control-section {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+
+    .product-selector {
+      flex: 1;
+    }
+
+    .data-source-button {
+      white-space: nowrap;
+    }
+  }
+}
+
+.loading-text {
+  opacity: 0.7;
+  margin-left: $spacing-sm;
+}
+
+.data-row {
+  margin-bottom: $spacing-md;
+}
+
+.summary-card,
+.product-info-card,
+.empty-product-card {
+  height: 100%;
+  box-shadow: $box-shadow;
+  border-radius: $border-radius;
+
+  :deep(.ant-card-head) {
+    padding: $spacing-sm $spacing-md;
+    border-bottom: 1px solid #f0f0f0;
+
+    .ant-card-head-title {
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+}
+
+.stat-box {
+  padding: $spacing-sm;
+  margin-bottom: $spacing-sm;
+  background-color: #f9f9f9;
+  border-radius: $border-radius;
+
+  .stat-title {
+    font-size: 14px;
+    color: $text-secondary;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: $primary-color;
+
+    &.no-data {
+      color: $text-secondary;
+      font-size: 16px;
+      font-weight: normal;
+    }
+  }
+}
+
+.stock-alert-container,
+.prediction-alert {
+  margin-top: $spacing-md;
+}
+
+.chart-card {
+  margin-top: $spacing-sm;
+  box-shadow: $box-shadow;
+  border-radius: $border-radius;
+
+  .chart-container {
+    width: 100%;
+    height: 400px;
+    padding: $spacing-sm 0;
+  }
+}
+
+.product-detail {
+  display: flex;
+  gap: $spacing-md;
+
+  .product-image-container {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f9f9f9;
+    border-radius: $border-radius;
+    overflow: hidden;
+
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .product-info {
+    flex: 1;
+
+    .product-name {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: $spacing-sm;
+      color: $text-primary;
+    }
+
+    .product-meta {
+      .meta-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+
+        .meta-label {
+          width: 60px;
+          color: $text-secondary;
+        }
+
+        .meta-value {
+          color: $text-primary;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .control-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $spacing-sm;
+
+    .data-source-button {
+      margin-top: $spacing-xs;
+    }
+  }
+
+  .product-detail {
+    flex-direction: column;
+
+    .product-image-container {
+      width: 100%;
+      height: 180px;
+      margin-bottom: $spacing-sm;
+    }
+  }
+}
 </style>
