@@ -1,4 +1,4 @@
-name: "publish"
+name: "publish demo"
 
 on:
   push:
@@ -25,6 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Cache pnpm store
+        uses: actions/cache@v4
       - name: Cache pnpm store
         uses: actions/cache@v4
         with:
@@ -55,6 +57,10 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
+          node-version: lts/*
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 9
 
@@ -67,6 +73,13 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.event.inputs.tag || github.ref_name }}
+          releaseName: "App ${{ github.event.inputs.tag || github.ref_name }}"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
         with:
           tagName: ${{ github.event.inputs.tag || github.ref_name }}
           releaseName: "App ${{ github.event.inputs.tag || github.ref_name }}"
