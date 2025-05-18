@@ -4,7 +4,8 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:   
+  workflow_dispatch:
+
 jobs:
   publish-tauri:
     permissions:
@@ -20,31 +21,52 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: setup node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
 
-      - name: install pnpm
+      - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: install frontend dependencies
-        run: pnpm install
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
         with:
-          tagName: v__VERSION__
-          releaseName: 'v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: x86_64-pc-windows-msvc
 
-      - name: upload artifact
+      - name: Cache Rust
+        uses: actions/cache@v4
+        with:
+          path: |
+            src-tauri/target/release
+            src-tauri/target/debug
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ matrix.platform }}-rust-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.platform }}-rust-
+
+      - name: Build Tauri
+        shell: pwsh
+        run: |
+          $env:PATH += ";$env:CARGO_HOME\bin"
+          pnpm run tauri build -- --verbose
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifact
-          path: src-tauri/target/release/bundle
+          name: tauri-build
+          path: |
+            src-tauri/target/release/*.msi
+            src-tauri/target/release/*.exe
