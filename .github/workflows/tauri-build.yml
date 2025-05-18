@@ -24,17 +24,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9 # 或与你本地一致的pnpm主版本号
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
           cache: "pnpm"
           cache-dependency-path: "pnpm-lock.yaml"
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9 # 如果你的 pnpm 是其他主版本，请改成对应数字
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
