@@ -47,6 +47,9 @@ jobs:
           override: true
           target: x86_64-pc-windows-msvc
 
+      - name: Install WiX Toolset
+        uses: tauri-apps/wixtoolset-action@v1
+
       - name: Cache Rust
         uses: actions/cache@v4
         with:
