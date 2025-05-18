@@ -25,12 +25,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'pnpm'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: latest
+          cache: 'npm'  # 改为npm缓存
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -46,20 +41,13 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ~/.cargo/bin
+            src-tauri/target  # 合并Rust缓存路径
           key: ${{ matrix.platform }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ matrix.platform }}-cargo-
 
-      - name: Cache Rust target
-        uses: actions/cache@v4
-        with:
-          path: src-tauri/target
-          key: ${{ matrix.platform }}-tauri-target-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ matrix.platform }}-tauri-target-
-
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci  # 使用ci命令保证依赖一致性
 
       - uses: tauri-apps/tauri-action@v0
         env:
