@@ -1,96 +1,65 @@
-name: "publish"
+name: Tauri Build
 
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Release tag (如 v0.3.13)'
-        required: true
-        type: string
 
 jobs:
-  publish-tauri:
-    permissions:
-      contents: write
-      packages: write
+  build:
+    runs-on: ubuntu-latest
+
     strategy:
-      fail-fast: false
       matrix:
-        include:
-          - platform: "windows-latest"
-            args: ""
-
-    runs-on: ${{ matrix.platform }}
+        args: [""]
+    
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: "pnpm"
-          cache-dependency-path: "pnpm-lock.yaml"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: x86_64-pc-windows-msvc
-
-      - name: Cache Rust
+      # Node 缓存（适配 pnpm/yarn/npm，可按实际需求更改）
+      - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: |
-            src-tauri/target/release
-            src-tauri/target/debug
+            **/node_modules
+            ~/.pnpm-store
+          key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml', '**/yarn.lock') }}
+          restore-keys: |
+            node-modules-${{ runner.os }}-
+
+      # Rust 缓存
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
             ~/.cargo/registry
             ~/.cargo/git
-          key: ${{ matrix.platform }}-rust-${{ hashFiles('**/Cargo.lock') }}
+            src-tauri/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: |
-            ${{ matrix.platform }}-rust-
+            cargo-${{ runner.os }}-
 
-      - name: Build Tauri
-        shell: pwsh
-        run: |
-          $env:PATH += ";$env:CARGO_HOME\bin"
-          pnpm run tauri build -- --verbose
-
-      # 上传 artifact
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          name: tauri-build
-          path: |
-            src-tauri/target/release/*.msi
-            src-tauri/target/release/*.exe
+          node-version: 20
 
-      # 获取最新tag
-      - name: Get latest tag
-        id: get_tag
-        run: echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+      - name: Install dependencies
+        run: npm install
 
-      # 发布文件
-      - name: Upload to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          files: |
-            src-tauri/target/release/*.msi
-            src-tauri/target/release/*.exe
+      - name: Build frontend
+        run: npm run build
+
+      - name: Tauri Build and Release
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}
