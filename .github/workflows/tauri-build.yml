@@ -20,48 +20,55 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 确保获取完整提交历史
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm'  # 改为npm缓存
+          cache: 'npm'
+          cache-dependency-path: 'package.json'  # 显式指定缓存依据
 
-      - name: Install Rust
+      - name: Generate lockfile
+        if: !exists('package-lock.json')  # 如果不存在锁定文件
+        run: npm install --package-lock-only  # 仅生成lock文件
+
+      - name: Install dependencies
+        run: |
+          npm ci --no-audit
+          npx -y @npmcli/fs@latest ensure-node-symlink  # 修复Windows符号链接问题
+
+      - name: Setup Rust
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
+          target: x86_64-pc-windows-msvc  # 明确指定Windows目标平台
 
-      - name: Cache Cargo
+      - name: Cache Rust
         uses: actions/cache@v4
         with:
           path: |
+            src-tauri/target/release
+            src-tauri/target/debug
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cargo/bin
-            src-tauri/target  # 合并Rust缓存路径
-          key: ${{ matrix.platform }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.platform }}-rust-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ matrix.platform }}-cargo-
+            ${{ matrix.platform }}-rust-
 
-      - name: Install dependencies
-        run: npm ci  # 使用ci命令保证依赖一致性
-
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: v__VERSION__
-          releaseName: 'v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
+      - name: Build Tauri
+        shell: pwsh  # 强制使用PowerShell
+        run: |
+          $env:PATH += ";$env:CARGO_HOME\bin"
+          npm run tauri build -- --verbose
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: artifact
-          path: src-tauri/target/release/bundle
+          name: tauri-build
+          path: |
+            src-tauri/target/release/*.msi
+            src-tauri/target/release/*.exe
