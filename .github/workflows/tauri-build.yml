@@ -31,8 +31,10 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: "pnpm-lock.yaml"
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9 # 如果你的 pnpm 是其他主版本，请改成对应数字
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
