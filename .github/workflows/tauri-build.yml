@@ -21,15 +21,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: setup node
+      - name: Setup Node.js with pnpm
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: 'pnpm'
+          pnpm-version: 'latest'
 
-      - name: install pnpm
-        run: npm install -g pnpm
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
 
-      - name: install frontend dependencies
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin
+          key: ${{ matrix.platform }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.platform }}-cargo-
+
+      - name: Cache Rust target directory
+        uses: actions/cache@v4
+        with:
+          path: src-tauri/target
+          key: ${{ matrix.platform }}-tauri-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.platform }}-tauri-target-
+
+      - name: Install frontend dependencies
         run: pnpm install
 
       - uses: tauri-apps/tauri-action@v0
@@ -43,7 +68,7 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
-      - name: upload artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: artifact
