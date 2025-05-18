@@ -79,11 +79,11 @@ jobs:
         id: get_tag
         run: echo "tag=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
 
-      # 上传到 Release
+      # 发布文件
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.get_tag.outputs.tag }}
+          tag_name: ${{ github.ref_name }}
           files: |
             src-tauri/target/release/*.msi
             src-tauri/target/release/*.exe
