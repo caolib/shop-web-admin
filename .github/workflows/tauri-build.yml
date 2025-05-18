@@ -5,6 +5,11 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (如 v0.3.13)'
+        required: true
+        type: string
 
 jobs:
   publish-tauri:
@@ -86,7 +91,7 @@ jobs:
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
             src-tauri/target/release/*.msi
             src-tauri/target/release/*.exe
