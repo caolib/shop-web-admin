@@ -1,4 +1,4 @@
-name: "publish demo"
+name: "publish"
 
 on:
   push:
