@@ -1,11 +1,11 @@
-name: "publish"
+name: "publish demo"
 
 on:
   push:
     branches:
       - main
     tags:
-      - "v*" # 也可以只写 'v*' 只匹配 v 开头的 tag
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
@@ -60,6 +60,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
