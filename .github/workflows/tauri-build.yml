@@ -51,9 +51,10 @@ jobs:
           toolchain: stable
           override: true
           target: x86_64-pc-windows-msvc
-
+          
       - name: Install WiX Toolset
-        uses: tauri-apps/wixtoolset-action@v1
+        run: choco install wixtoolset --no-progress
+        shell: pwsh
 
       - name: Cache Rust
         uses: actions/cache@v4
