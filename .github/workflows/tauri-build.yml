@@ -1,86 +1,79 @@
-name: Tauri Build
+name: "publish"
 
 on:
   push:
+    branches:
+      - main
     tags:
-      - 'v*'
+      - "v*" # 也可以只写 'v*' 只匹配 v 开头的 tag
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (format vX.Y.Z)'
+        description: "发布 tag"
         required: true
         type: string
 
+# This workflow will trigger on each push to the `release` branch to create or update a GitHub release, build your app, and upload the artifacts to the release.
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  publish-tauri:
+    permissions:
+      contents: write
     strategy:
+      fail-fast: false
       matrix:
-        args: [""]
-    
+        include:
+          - platform: "windows-latest"
+            args: ""
+
+    runs-on: ${{ matrix.platform }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 提取当前tag（自动触发时）或验证输入tag（手动触发时）
-      - name: Validate and set tag
-        id: tag
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            # 验证手动输入的tag格式
-            if [[ ! "${{ inputs.tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "::error::Invalid tag format. Must be vX.Y.Z"
-              exit 1
-            fi
-            echo "value=${{ inputs.tag }}"
-          else
-            # 从推送的tag中提取版本
-            echo "value=${GITHUB_REF#refs/tags/}"
-          fi >> $GITHUB_OUTPUT
-
-      # Node 缓存（适配 pnpm/yarn/npm，可按实际需求更改）
-      - name: Cache node modules
+      - name: Cache pnpm store
         uses: actions/cache@v4
         with:
-          path: |
-            **/node_modules
-            ~/.pnpm-store
-          key: node-modules-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml', '**/yarn.lock') }}
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            node-modules-${{ runner.os }}-
+            ${{ runner.os }}-pnpm-store-
 
-      # Rust 缓存
-      - name: Cache cargo registry
+      - name: Cache Rust cargo registry
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            src-tauri/target
-          key: cargo-${{ runner.os }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            cargo-${{ runner.os }}-
+            ${{ runner.os }}-cargo-
 
-      - name: Set up Node.js
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
+
+      - name: setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
 
-      - name: Install dependencies
-        run: npm install
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Build frontend
-        run: npm run build
+      - name: install frontend dependencies
+        run: pnpm install
 
-      - name: Tauri Build and Release
-        uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ steps.tag.outputs.value }}
-          releaseName: '${{ steps.tag.outputs.value }}'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: false
+          tagName: ${{ github.event.inputs.tag || github.ref_name }}
+          releaseName: "App ${{ github.event.inputs.tag || github.ref_name }}"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
